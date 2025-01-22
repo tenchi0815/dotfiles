@@ -8,9 +8,11 @@
 # THIS FILE IS NOT INTENDED TO BE USED AS /etc/zshrc, NOR WITHOUT EDITING
 #return 0	# Remove this line after editing this file as appropriate
 
+# -------------------------------------------------------------------------------------------------------
 # Search path for the cd command
 cdpath=(.. ~ ~/src ~/zsh)
 
+# -------------------------------------------------------------------------------------------------------
 # Use hard limits, except for a smaller stack and no core dumps
 unlimit
 limit stack 8192
@@ -19,6 +21,7 @@ limit -s
 
 umask 022
 
+# -------------------------------------------------------------------------------------------------------
 # Set up aliases
 alias mv='nocorrect mv'       # no spelling correction on mv
 alias cp='nocorrect cp'       # no spelling correction on cp
@@ -44,6 +47,7 @@ if [ -f ~/.zsh_aliases ]; then
     . ~/.zsh_aliases
 fi
 
+# -------------------------------------------------------------------------------------------------------
 # enable color support of ls and also add handy aliases
 if [ -x /usr/bin/dircolors ]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
@@ -57,17 +61,25 @@ if [ -x /usr/bin/dircolors ]; then
     alias egrep='egrep --color=auto'
 fi
 
-# List only directories and symbolic
-# links that point to directories
+# -------------------------------------------------------------------------------------------------------
+# List only directories and symbolic links that point to directories
 alias lsd='ls -ld *(-/DN)'
 
 # List only file beginning with "."
 alias lsa='ls -ld .*'
 
+# Global aliases -- These do not have to be
+# at the beginning of the command line.
+alias -g M='|more'
+alias -g H='|head'
+alias -g T='|tail'
+
+# -------------------------------------------------------------------------------------------------------
 # Shell functions
 setenv() { typeset -x "${1}${1:+=}${(@)argv[2,$#]}" }  # csh compatibility
 freload() { while (( $# )); do; unfunction $1; autoload -U $1; shift; done }
 
+# -------------------------------------------------------------------------------------------------------
 # Where to look for autoloaded function definitions
 fpath=($fpath ~/.zfunc)
 
@@ -77,15 +89,11 @@ fpath=($fpath ~/.zfunc)
 # particular shell function). $fpath should not be empty for this to work.
 for func in $^fpath/*(N-.x:t); autoload $func
 
+# -------------------------------------------------------------------------------------------------------
 # automatically remove duplicates from these arrays
 typeset -U path cdpath fpath manpath
 
-# Global aliases -- These do not have to be
-# at the beginning of the command line.
-alias -g M='|more'
-alias -g H='|head'
-alias -g T='|tail'
-
+# -------------------------------------------------------------------------------------------------------
 # Set prompts
 #PROMPT='%m%# '    # default prompt
 
@@ -131,7 +139,9 @@ PROMPT=`prompt`
 RPROMPT=' %~'     # prompt for right side of screen
 RPROMPT=`rprompt`
 
+# -------------------------------------------------------------------------------------------------------
 # Some environment variables
+
 #export MAIL=/var/spool/mail/$USERNAME
 #export LESS=-cex3M
 #export HELPDIR=/usr/share/zsh/$ZSH_VERSION/help  # directory for run-help function to find docs
@@ -141,6 +151,32 @@ RPROMPT=`rprompt`
 #HISTSIZE=200
 #DIRSTACKSIZE=20
 
+# proxy
+PROXY="$HOME/.zsh_proxy"
+[ -f $PROXY ] && source $PROXY
+
+export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+
+# Use ~~ as the trigger sequence instead of the default **
+export FZF_COMPLETION_TRIGGER='*'
+
+# Kubernetes
+export KUBECONFIG=$KUBECONFIG:$HOME/.kube/config:$HOME/.kube/config_ike
+
+# nvim
+export EDITOR=nvim
+export NVM_DIR="$HOME/.nvm"
+
+export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+
+export DENO_INSTALL="$HOME/.deno"
+path+=("$DENO_INSTALL/bin")
+export PATH
+export NEXTWORD_DATA_PATH="/usr/share/nextword-data-small/"
+export TZ='Asia/Tokyo'
+
+# -------------------------------------------------------------------------------------------------------
 # don't put duplicate lines or lines starting with space in the history.
 HISTCONTROL=ignoreboth
 
@@ -160,7 +196,8 @@ setopt inc_append_history
 setopt   notify globdots correct pushdtohome cdablevars autolist
 setopt   autocd recexact
 setopt   autoresume histignoredups pushdsilent
-setopt   autopushd pushdminus extendedglob rcquotes
+setopt   autopushd pushdminus rcquotes
+#setopt extendedglob
 unsetopt autoparamslash
 setopt PROMPT_SUBST
 setopt transient_rprompt
@@ -168,17 +205,20 @@ setopt extended_history
 setopt hist_no_store         # do not save a record of history command itself
 setopt hist_reduce_blanks    # trail extra spaces when recording history
 
+# -------------------------------------------------------------------------------------------------------
+# keybindings
 bindkey -e                 # emacs key bindings
 bindkey ' ' magic-space    # also do history expansion on space
 bindkey '^I' complete-word # complete on tab, leave expansion to _expand
+
+# -------------------------------------------------------------------------------------------------------
+# Completion Styles
 
 # Setup new style completion system. To see examples of the old style (compctl
 # based) programmable completion, check Misc/compctl-examples in the zsh
 # distribution.
 autoload -U compinit
 compinit
-
-# Completion Styles
 
 # list of completers to use
 zstyle ':completion:*::::' completer _expand _complete _ignored _approximate
@@ -218,11 +258,18 @@ zstyle ':completion:*:*:(^rm):*:*files' ignored-patterns '*?.o' '*?.c~' \
 # ignore completion functions (until the _ignored completer)
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
-# # git-completion & git-prompt
+# fzf
+# Set up fzf key bindings and fuzzy completion
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+
+# kubectl completion
+source <(kubectl completion zsh)
+
+# git-completion & git-prompt
 # for prompt # https://qiita.com/ryoichiro009/items/7957df2b48a9ea6803e0
 if [ -f ~/.git-prompt.sh ]; then
     source ~/.git-prompt.sh
-    readonly GIT_PS1_PROMPT='$(__git_ps1)'
+    GIT_PS1_PROMPT='$(__git_ps1)'
 else
     which wget && wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O ~/.git-prompt.sh
 fi
@@ -236,15 +283,14 @@ GIT_PROMPT_IGNORE_SUBMODULES=1
 GIT_PROMPT_SHOW_UNTRACKED_FILES=no
 GIT_PROMPT_FETCH_REMOTE_STATUS=0
 
+# -------------------------------------------------------------------------------------------------------
 # Auto add hop-git ssh-key
 if [ -f /usr/local/bin/ssh-addkey-svc-git.sh ]; then
 	. /usr/local/bin/ssh-addkey-svc-git.sh > /dev/null 2>&1
 fi
 
-# fzf
-# Set up fzf key bindings and fuzzy completion
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
-
+# -------------------------------------------------------------------------------------------------------
+# tmux
 if [ -n $TMUX ]; then
     ## Tmux + SSH --------------------------------------------------------
     function ssh_tmux() {
@@ -267,6 +313,3 @@ if [ -n $TMUX ]; then
     #  alias ssh=ssh_tmux
     #fi
 fi
-
-# kubectl completion
-source <(kubectl completion zsh)
