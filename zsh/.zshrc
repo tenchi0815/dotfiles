@@ -27,25 +27,68 @@ alias mv='nocorrect mv'       # no spelling correction on mv
 alias cp='nocorrect cp'       # no spelling correction on cp
 alias mkdir='nocorrect mkdir' # no spelling correction on mkdir
 #alias j=jobs
-alias pu=pushd
-alias po=popd
-alias d='dirs -v'
+#alias pu=pushd
+#alias po=popd
+#alias d='dirs -v'
 #alias h=history
-alias grep=egrep
-alias ll='ls -alF'
-alias la='ls -A'
-alias rmi='rm -i'
-alias rmi='rm -I'
+#alias grep=egrep
+#alias ll='ls -alF'
+#alias la='ls -A'
+#alias rmi='rm -i'
+#alias rmI='rm -I'
 alias mv='mv -i'
 alias cp='cp -i'
 
-alias ...='cd ../..'
-alias ....='cd ../../..'
+#alias ...='cd ../..'
+#alias ....='cd ../../..'
 
 # source environmental-dependent aliases
 if [ -f ~/.zsh_aliases ]; then
     . ~/.zsh_aliases
 fi
+
+# -------------------------------------------------------------------------------------------------------
+# iab
+setopt extended_glob
+
+typeset -A abbreviations
+abbreviations=(
+    '...'   '../..'
+    '....'  '../../..'
+    "d"     "dirs -v"
+    "G"     "| grep"
+    "H"     "| head"
+    "Hl"    " --help |& less -r"
+    "j"     "jobs"
+    "ll"    "ls -alF"
+    "la"    "ls -A"
+    "rmi"   "rm -i"
+    "rmI"   "rm -I"
+    "L"     "| less"
+    "pu"    "pushd"
+    "po"    "popd"
+    "S"     "| sort -u"
+    "T"     "| tail"
+    "V"     "| ${VISUAL:-${EDITOR}}"
+    "W"     "| wc"
+    "X"     "| xargs"
+)
+
+magic-abbrev-expand() {
+    local MATCH
+    LBUFFER=${LBUFFER%%(#m)[.\-+:|_a-zA-Z0-9]#}
+    LBUFFER+=${abbreviations[$MATCH]:-$MATCH}
+    zle self-insert
+}
+
+no-magic-abbrev-expand() {
+  LBUFFER+=' '
+}
+
+zle -N magic-abbrev-expand
+zle -N no-magic-abbrev-expand
+bindkey " " magic-abbrev-expand
+bindkey "^x " no-magic-abbrev-expand
 
 # -------------------------------------------------------------------------------------------------------
 # enable color support of ls and also add handy aliases
@@ -97,6 +140,23 @@ typeset -U path cdpath fpath manpath
 # Set prompts
 #PROMPT='%m%# '    # default prompt
 
+# git-completion & git-prompt
+# for prompt # https://qiita.com/ryoichiro009/items/7957df2b48a9ea6803e0
+if [ -f ~/.git-prompt.sh ]; then
+    source ~/.git-prompt.sh
+else
+    which wget && wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O ~/.git-prompt.sh
+fi
+
+GIT_PS1_SHOWDIRTYSTATE=true
+GIT_PS1_SHOWUNTRACKEDFILES=true
+GIT_PS1_SHOWSTASHSTATE=true
+GIT_PS1_SHOWUPSTREAM=auto
+GIT_PROMPT_ONLY_IN_REPO=1
+GIT_PROMPT_IGNORE_SUBMODULES=1
+GIT_PROMPT_SHOW_UNTRACKED_FILES=no
+GIT_PROMPT_FETCH_REMOTE_STATUS=0
+
 function prompt {
     brace_s='%{'
     brace_e='%}'
@@ -120,24 +180,19 @@ function prompt {
     echo "${prompt}"
 }
 
-function rprompt {
-    fg_reset="%F{default}"
-
-    if [[ $TERM = screen ]] || [[ $TERM = screen-256color ]] ; then
-        fg_yellow="%F{#b58900}"
-        fg_base1="%F{#93a1a1}"
-    fi
-
-        [ -n "${GIT_PS1_PROMPT}" ] && git_prompt="${fg_yellow}${GIT_PS1_PROMPT}${fg_reset}"
-        CWD="${fg_base1}$RPROMPT"
-
-        echo "${CWD}${git_prompt} "
+function git-prompt {
+    echo "${fg_yellow}"'$(__git_ps1)%F{default} '
 }
+
+if [[ $TERM = screen ]] || [[ $TERM = screen-256color ]] ; then
+    fg_yellow="%F{#b58900}"
+    fg_base1="%F{#93a1a1}"
+fi
 
 PROMPT=`prompt`
 
 RPROMPT=' %~'     # prompt for right side of screen
-RPROMPT=`rprompt`
+command -v __git_ps1 > /dev/null 2>&1 && RPROMPT=$RPROMPT"`git-prompt`"
 
 # -------------------------------------------------------------------------------------------------------
 # Some environment variables
@@ -158,13 +213,13 @@ PROXY="$HOME/.zsh_proxy"
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 
 # Use ~~ as the trigger sequence instead of the default **
-export FZF_COMPLETION_TRIGGER='*'
+#export FZF_COMPLETION_TRIGGER='~~'
 
 # Kubernetes
 export KUBECONFIG=$KUBECONFIG:$HOME/.kube/config:$HOME/.kube/config_ike
 
-# nvim
-export EDITOR=nvim
+#export EDITOR="nvim"
+
 export NVM_DIR="$HOME/.nvm"
 
 export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
@@ -197,7 +252,6 @@ setopt   notify globdots correct pushdtohome cdablevars autolist
 setopt   autocd recexact
 setopt   autoresume histignoredups pushdsilent
 setopt   autopushd pushdminus rcquotes
-#setopt extendedglob
 unsetopt autoparamslash
 setopt PROMPT_SUBST
 setopt transient_rprompt
@@ -208,7 +262,7 @@ setopt hist_reduce_blanks    # trail extra spaces when recording history
 # -------------------------------------------------------------------------------------------------------
 # keybindings
 bindkey -e                 # emacs key bindings
-bindkey ' ' magic-space    # also do history expansion on space
+#bindkey ' ' magic-space    # also do history expansion on space
 bindkey '^I' complete-word # complete on tab, leave expansion to _expand
 
 # -------------------------------------------------------------------------------------------------------
@@ -264,24 +318,6 @@ zstyle ':completion:*:functions' ignored-patterns '_*'
 
 # kubectl completion
 source <(kubectl completion zsh)
-
-# git-completion & git-prompt
-# for prompt # https://qiita.com/ryoichiro009/items/7957df2b48a9ea6803e0
-if [ -f ~/.git-prompt.sh ]; then
-    source ~/.git-prompt.sh
-    GIT_PS1_PROMPT='$(__git_ps1)'
-else
-    which wget && wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O ~/.git-prompt.sh
-fi
-
-GIT_PS1_SHOWDIRTYSTATE=true
-GIT_PS1_SHOWUNTRACKEDFILES=true
-GIT_PS1_SHOWSTASHSTATE=true
-GIT_PS1_SHOWUPSTREAM=auto
-GIT_PROMPT_ONLY_IN_REPO=1
-GIT_PROMPT_IGNORE_SUBMODULES=1
-GIT_PROMPT_SHOW_UNTRACKED_FILES=no
-GIT_PROMPT_FETCH_REMOTE_STATUS=0
 
 # -------------------------------------------------------------------------------------------------------
 # Auto add hop-git ssh-key
