@@ -43,7 +43,7 @@ alias cp='cp -i'
 #alias ....='cd ../../..'
 
 # source environmental-dependent aliases
-if [ -f ~/.zsh_aliases ]; then
+if [[ -f ~/.zsh_aliases ]]; then
     . ~/.zsh_aliases
 fi
 
@@ -92,7 +92,7 @@ bindkey "^x " no-magic-abbrev-expand
 
 # -------------------------------------------------------------------------------------------------------
 # enable color support of ls and also add handy aliases
-if [ -x /usr/bin/dircolors ]; then
+if [[ -x /usr/bin/dircolors ]]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
     alias diff='diff --color=always'
@@ -142,7 +142,7 @@ typeset -U path cdpath fpath manpath
 
 # git-completion & git-prompt
 # for prompt # https://qiita.com/ryoichiro009/items/7957df2b48a9ea6803e0
-if [ -f ~/.git-prompt.sh ]; then
+if [[ -f ~/.git-prompt.sh ]]; then
     source ~/.git-prompt.sh
 else
     which wget && wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O ~/.git-prompt.sh
@@ -167,7 +167,7 @@ function prompt {
     #fg_purple="\x1b[38;2;108;113;196m"
     fg_base1="%F{#93a1a1}"
 
-    if [ ! $TMUX ]; then
+    if [[ ! $TMUX ]]; then
         usr_host="${brace_s}${fg_green}${brace_e}%n@%M"
         #colon="${brace_s}${fg_reset}${brace_e}:"
         #cwd="${brace_s}${fg_lightblue}${brace_e}%~"
@@ -208,7 +208,7 @@ command -v __git_ps1 > /dev/null 2>&1 && RPROMPT=$RPROMPT"`git-prompt`"
 
 # proxy
 PROXY="$HOME/.zsh_proxy"
-[ -f $PROXY ] && source $PROXY
+[[ -f $PROXY ]] && source $PROXY
 
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 
@@ -222,8 +222,8 @@ export KUBECONFIG=$KUBECONFIG:$HOME/.kube/config:$HOME/.kube/config_ike
 
 export NVM_DIR="$HOME/.nvm"
 
-export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
+export NVM_DIR="$([[ -z "${XDG_CONFIG_HOME-}" ]] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
+[[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
 export DENO_INSTALL="$HOME/.deno"
 path+=("$DENO_INSTALL/bin")
@@ -314,28 +314,28 @@ zstyle ':completion:*:functions' ignored-patterns '_*'
 
 # fzf
 # Set up fzf key bindings and fuzzy completion
-[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
+[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
 
 # kubectl completion
 source <(kubectl completion zsh)
 
 # -------------------------------------------------------------------------------------------------------
 # Auto add hop-git ssh-key
-if [ -f /usr/local/bin/ssh-addkey-svc-git.sh ]; then
+if [[ -f /usr/local/bin/ssh-addkey-svc-git.sh ]]; then
 	. /usr/local/bin/ssh-addkey-svc-git.sh > /dev/null 2>&1
 fi
 
 # -------------------------------------------------------------------------------------------------------
 # tmux
-if [ -n $TMUX ]; then
+if [[ -n $TMUX ]]; then
     ## Tmux + SSH --------------------------------------------------------
     function ssh_tmux() {
         ssh_host=$(echo $@ | perl -ple 's/(^|\s)-[^\s] *[^\s]+//g' | cut -d" " -f2 )
         tmux    new-window -n $(echo $@ | perl -ple 's/(^|\s)-[^\s] *[^\s]+//g' | cut -d" " -f2 ) "exec ssh $(echo $@)" \; \
-                run-shell "[ ! -d $HOME/.tmux/log/${ssh_host} ] && mkdir -p $HOME/.tmux/log/${ssh_host}" \; \
+                run-shell "[[ ! -d $HOME/.tmux/log/${ssh_host} ]] && mkdir -p $HOME/.tmux/log/${ssh_host}" \; \
                 pipe-pane "cat >> $HOME/.tmux/log/${ssh_host}/$(date +%Y%m%d_%H%M%S.log)" \; \
                 display-message "Started logging to $HOME/.tmux/log/${ssh_host}/$(date +%Y%m%d_%H%M%S.log)"
-        #tmux    run-shell "[ ! -d $HOME/.tmux/log/${ssh_host} ] && mkdir -p $HOME/.tmux/log/${ssh_host}" \; \
+        #tmux    run-shell "[[ ! -d $HOME/.tmux/log/${ssh_host} ]] && mkdir -p $HOME/.tmux/log/${ssh_host}" \; \
         #        pipe-pane "cat >> $HOME/.tmux/log/${ssh_host}/$(date +%Y%m%d_%H%M%S.log)" \; \
         #        split-window "exec ssh $(echo $@)" \; \
         #        display-message "Started logging to $HOME/.tmux/log/${ssh_host}/$(date +%Y%m%d_%H%M%S.log)" \
