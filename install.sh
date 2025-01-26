@@ -25,7 +25,7 @@ ln -sf $ZDIR/.zprofile $HOME/.zprofile
 ln -sf $ZDIR/.zshenv $HOME/.zshenv
 ln -sf $ZDIR/.zshrc $HOME/.zshrc
 
-# for NeoVim
+# NeoVim
 if command -v nvim > /dev/null; then
     XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-"$HOME/.config/"}
     [ -d $XDG_CONFIG_HOME ] || mkdir -p $XDG_CONFIG_HOME
