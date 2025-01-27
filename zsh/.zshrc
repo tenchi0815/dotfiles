@@ -72,6 +72,16 @@ abbreviations=(
     "V"     "| ${VISUAL:-${EDITOR}}"
     "W"     "| wc"
     "X"     "| xargs"
+    "ga"    "git add"
+    "gc"    "git commit"
+    "gl"    "git log"
+    "gln"    "git log --name-only"
+    "gd"    "git diff"
+    "gps"    "git push"
+    "gpl"    "git pull"
+    "gsw"    "git switch"
+    "gst"    "git status"
+    "gsc"   "git switch -c"
 )
 
 magic-abbrev-expand() {
@@ -142,10 +152,17 @@ typeset -U path cdpath fpath manpath
 
 # git-completion & git-prompt
 # for prompt # https://qiita.com/ryoichiro009/items/7957df2b48a9ea6803e0
-if [[ -f ~/.git-prompt.sh ]]; then
-    source ~/.git-prompt.sh
+
+readonly git_prompt_script="$HOME/bin/git-prompt.sh"
+if [[ -f "${git_prompt_script}" ]]; then
+    source "${git_prompt_script}"
 else
-    which wget && wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O ~/.git-prompt.sh
+    cat - << EOF
+${git_prompt_script} is not found.
+To install:
+> % wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O ~/bin/git-prompt.sh
+> % chmod +x ~/bin/git-prompt.sh
+EOF
 fi
 
 GIT_PS1_SHOWDIRTYSTATE=true
@@ -219,6 +236,7 @@ export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 export KUBECONFIG=$KUBECONFIG:$HOME/.kube/config:$HOME/.kube/config_ike
 
 #export EDITOR="nvim"
+path+=('/opt/nvim-linux64/bin')
 
 export NVM_DIR="$HOME/.nvm"
 
@@ -227,9 +245,10 @@ export NVM_DIR="$([[ -z "${XDG_CONFIG_HOME-}" ]] && printf %s "${HOME}/.nvm" || 
 
 export DENO_INSTALL="$HOME/.deno"
 path+=("$DENO_INSTALL/bin")
-export PATH
 export NEXTWORD_DATA_PATH="/usr/share/nextword-data-small/"
 export TZ='Asia/Tokyo'
+
+export PATH
 
 # -------------------------------------------------------------------------------------------------------
 # don't put duplicate lines or lines starting with space in the history.
@@ -314,7 +333,7 @@ zstyle ':completion:*:functions' ignored-patterns '_*'
 
 # fzf
 # Set up fzf key bindings and fuzzy completion
-[[ -f ~/.fzf.zsh ]] && source ~/.fzf.zsh
+[[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
 
 # kubectl completion
 source <(kubectl completion zsh)
