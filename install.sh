@@ -19,21 +19,26 @@ symlink_dir() {
     ln -sf "$src" "$dst"
 }
 
-#[ -d $XDG_CONFIG_HOME ] || mkdir -p $XDG_CONFIG_HOME
+# zsh dotfiles
+#[[ -d $XDG_CONFIG_HOME ]] || mkdir -p $XDG_CONFIG_HOME
 #ln -s $ZDIR $HOME/.config/zsh
-ln -sf $ZDIR/.zprofile $HOME/.zprofile
-ln -sf $ZDIR/.zshenv $HOME/.zshenv
-ln -sf $ZDIR/.zshrc $HOME/.zshrc
+echo "Making symbolic links to zsh files..."
+symlink_dir $ZDIR/.zprofile $HOME/.zprofile
+symlink_dir $ZDIR/.zshenv $HOME/.zshenv
+symlink_dir $ZDIR/.zshrc $HOME/.zshrc
+echo
 
 # NeoVim
-if command -v nvim > /dev/null; then
+echo "Making symbolic links to vim config files..."
+if has nvim; then
     XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-"$HOME/.config/"}
     [ -d $XDG_CONFIG_HOME ] || mkdir -p $XDG_CONFIG_HOME
-    ln -sf "$VIMDIR" "$XDG_CONFIG_HOME/nvim"
+    symlink_dir "$VIMDIR" "$XDG_CONFIG_HOME/nvim"
 elif command -v vim > /dev/null; then
-    ln -sf "$VIMDIR"/init.vim "$HOME"/.vimrc
-    ln -sf "$VIMDIR"/vim.d "$HOME"/vim.d
+    symlink_dir "$VIMDIR"/init.vim "$HOME"/.vimrc
+    symlink_dir "$VIMDIR"/vim.d "$HOME"/vim.d
 else
-    echo "Neither nvim nor vim is installed."
+    #echo "Neither nvim nor vim is installed."
     exit 1
 fi
+echo
