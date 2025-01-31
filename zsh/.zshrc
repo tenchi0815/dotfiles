@@ -9,6 +9,12 @@
 #return 0	# Remove this line after editing this file as appropriate
 
 # -------------------------------------------------------------------------------------------------------
+# Local functions
+has() {
+    command -v "$1" > /dev/null 2>&1
+}
+
+# -------------------------------------------------------------------------------------------------------
 # Search path for the cd command
 cdpath=(.. ~ ~/src ~/zsh)
 
@@ -131,7 +137,6 @@ alias -g T='|tail'
 # Shell functions
 setenv() { typeset -x "${1}${1:+=}${(@)argv[2,$#]}" }  # csh compatibility
 freload() { while (( $# )); do; unfunction $1; autoload -U $1; shift; done }
-
 # -------------------------------------------------------------------------------------------------------
 # Where to look for autoloaded function definitions
 fpath=($fpath ~/.zfunc)
@@ -148,22 +153,12 @@ typeset -U path cdpath fpath manpath
 
 # -------------------------------------------------------------------------------------------------------
 # Set prompts
-#PROMPT='%m%# '    # default prompt
 
 # git-completion & git-prompt
 # for prompt # https://qiita.com/ryoichiro009/items/7957df2b48a9ea6803e0
 
-readonly git_prompt_script="$HOME/bin/git-prompt.sh"
-if [[ -f "${git_prompt_script}" ]]; then
-    source "${git_prompt_script}"
-else
-    cat - << EOF
-${git_prompt_script} is not found.
-To install:
-> % wget https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O ~/bin/git-prompt.sh
-> % chmod +x ~/bin/git-prompt.sh
-EOF
-fi
+git_prompt_script="$HOME/.git-prompt.sh"
+[[ -f "${git_prompt_script}" ]] && source "${git_prompt_script}"
 
 GIT_PS1_SHOWDIRTYSTATE=true
 GIT_PS1_SHOWUNTRACKEDFILES=true
@@ -175,25 +170,15 @@ GIT_PROMPT_SHOW_UNTRACKED_FILES=no
 GIT_PROMPT_FETCH_REMOTE_STATUS=0
 
 function prompt {
-    brace_s='%{'
-    brace_e='%}'
-    
-    fg_green='\e[32m'
-    fg_reset="%F{default}"
-    fg_lightblue='\e[38;5;12m'
-    #fg_purple="\x1b[38;2;108;113;196m"
-    fg_base1="%F{#93a1a1}"
+    fg_base="%F{#93a1a1}"
 
-    if [[ ! $TMUX ]]; then
-        usr_host="${brace_s}${fg_green}${brace_e}%n@%M"
-        #colon="${brace_s}${fg_reset}${brace_e}:"
-        #cwd="${brace_s}${fg_lightblue}${brace_e}%~"
-        doller="${fg_reset}%# "
+    if [[ $TMUX ]]; then
+        prompt="%# "
     else
-        doller="${fg_base1}%# ${fg_reset}"
+        usr_host="${fg_base}%n@%M%f"
+        prompt="${usr_host}%# "
     fi
 
-    prompt="${usr_host}${doller}"
     echo "${prompt}"
 }
 
@@ -203,11 +188,11 @@ function git-prompt {
 
 if [[ $TERM = screen ]] || [[ $TERM = screen-256color ]] ; then
     fg_yellow="%F{#b58900}"
-    fg_base1="%F{#93a1a1}"
+    fg_base="%F{#93a1a1}"
 fi
 
+#PROMPT='%m%# '    # default prompt
 PROMPT=`prompt`
-
 RPROMPT=' %~'     # prompt for right side of screen
 command -v __git_ps1 > /dev/null 2>&1 && RPROMPT=$RPROMPT"`git-prompt`"
 
@@ -236,7 +221,7 @@ export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 export KUBECONFIG=$KUBECONFIG:$HOME/.kube/config:$HOME/.kube/config_ike
 
 #export EDITOR="nvim"
-path+=('/opt/nvim-linux64/bin')
+path+=("/opt/nvim-linux-"$(uname -p)"/bin")
 
 export NVM_DIR="$HOME/.nvm"
 
@@ -336,7 +321,7 @@ zstyle ':completion:*:functions' ignored-patterns '_*'
 [[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
 
 # kubectl completion
-source <(kubectl completion zsh)
+has kubectl && source <(kubectl completion zsh)
 
 # -------------------------------------------------------------------------------------------------------
 # Auto add hop-git ssh-key
