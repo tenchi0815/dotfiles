@@ -123,9 +123,9 @@ if has nvim
 then
     msg_already "Neovim"
 else
-    run curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux64.tar.gz
-    run rm -rf /opt/nvim
-    run tar -C /opt -xzf nvim-linux64.tar.gz
+    run curl -LO "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-linux-"$(uname -p)".tar.gz"
+    run sudo rm -rf /opt/nvim
+    run sudo tar -C /opt -xzf nvim-linux-$(uname -p).tar.gz
 
     #echo 'export PATH="$PATH:/opt/nvim-linux64/bin"' >> ~/.bashrc
     msg_done "Neovim"
