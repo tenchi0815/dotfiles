@@ -1,6 +1,6 @@
 "------------------------------------------------------------------------------
 let g:vim_home = expand('<sfile>:h')
-let g:rc_dir = expand(g:vim_home . '/vim.d')
+let g:rc_dir = expand(g:vim_home . '/nvim.d')
 
 " function to load rc files
 function s:source_rc(rc_file)

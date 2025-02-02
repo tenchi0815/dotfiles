@@ -35,7 +35,7 @@ if has nvim; then
     symlink_dir "${VIMDIR}" "${XDG_CONFIG_HOME}/nvim"
 elif has vim > /dev/null; then
     symlink_dir "${VIMDIR}"/init.vim "${HOME}"/.vimrc
-    symlink_dir "${VIMDIR}"/vim.d "${HOME}"/vim.d
+    symlink_dir "${VIMDIR}"/nvim.d "${HOME}"/nvim.d
 else
     echo "Neither nvim nor vim is installed."
     echo "Skipped."

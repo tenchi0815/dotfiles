@@ -22,5 +22,5 @@ unlink_ifexist "$XDG_CONFIG_HOME/nvim"
 
 # Delete symlink for Vim
 unlink_ifexist "$HOME"/.vimrc
-unlink_ifexist "$HOME"/vim.d
+unlink_ifexist "$HOME"/nvim.d
 
