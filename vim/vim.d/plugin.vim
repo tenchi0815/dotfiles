@@ -1,6 +1,8 @@
 "" Plugins
 if ! empty(globpath(&rtp, 'autoload/plug.vim'))
     call plug#begin()
+    " hybrid.vim
+    Plug 'https://github.com/w0ng/vim-hybrid.git'
     " fzf.vim
     Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
     Plug 'junegunn/fzf.vim'
