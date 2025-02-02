@@ -1,0 +1,8 @@
+# ~/.config/tmux/tmux.conf.local: device local user configuration file for tmux
+#
+#
+
+# Character constants ❯❯❯
+# ----------------------------------------------------------------------------------
+IC_CLOCK=""
+IC_USER=""
