@@ -353,3 +353,8 @@ if [[ -n $TMUX ]]; then
     #  alias ssh=ssh_tmux
     #fi
 fi
+
+# -------------------------------------------------------------------------------------------------------
+# Local environment dependent settings
+local_zsh=$HOME/.zshrc.local
+[[ -f $local_zsh ]] && source $local_zsh
