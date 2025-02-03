@@ -51,6 +51,9 @@ if ! empty(globpath(&rtp, 'autoload/plug.vim'))
     "   filetype indent off   " Disable file-type-specific indentation
     "   syntax off            " Disable syntax highlighting
 
+    " Assign <space>to <Leader>
+    let mapleader = '<space>'
+
     " vim-easymotion
     " <Leader>f{char} to move to {char}
     map  <Leader>f <Plug>(easymotion-bd-f)
