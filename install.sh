@@ -1,13 +1,14 @@
 #!/bin/sh -eu
 
 # Ours variables
-readonly DIR="$(cd "$(dirname "$0")"; pwd)"
-readonly ZDIR="${DIR}/zsh"
-readonly VIMDIR="${DIR}/vim"
-readonly TMUXDIR="${DIR}/tmux"
+DIR="$(cd "$(dirname "$0")"; pwd)"
+ZDIR="${DIR}/zsh"
+VIMDIR="${DIR}/nvim"
+TMUXDIR="${DIR}/tmux"
+readonly DIR ZDIR VIMDIR TMUXDIR
 
 # Theirs variables
-export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-"${HOME}/.config"}"
+export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
 
 has() {
     command -v "$1" > /dev/null 2>&1
@@ -22,10 +23,11 @@ symlink_dir() {
 
 # zsh dotfiles
 echo "Making symbolic links to zsh files..."
-symlink_dir "${ZDIR}"/.zprofile "${ZDOTDIR:-~}"/.zprofile
-symlink_dir "${ZDIR}"/.zshenv "${ZDOTDIR:-~}"/.zshenv
-symlink_dir "${ZDIR}"/.zshrc "${ZDOTDIR:-~}"/.zshrc
-symlink_dir "${ZDIR}"/.zsh_aliases "${ZDOTDIR:-~}"/.zsh_aliases
+#symlink_dir "${ZDIR}"/.zprofile "${ZDOTDIR:-~}"/.zprofile
+symlink_dir "${ZDIR}"/.zshenv "${ZDOTDIR:-$HOME}"/.zshenv
+symlink_dir "${ZDIR}"/.zshrc "${ZDOTDIR:-$HOME}"/.zshrc
+symlink_dir "${ZDIR}"/.zshrc.local "${ZDOTDIR:-$HOME}"/.zshrc.local
+symlink_dir "${ZDIR}"/.zsh_aliases "${ZDOTDIR:-$HOME}"/.zsh_aliases
 
 # NeoVim
 echo "Making symbolic links to vim config files..."
