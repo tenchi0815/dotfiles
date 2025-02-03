@@ -165,8 +165,14 @@ typeset -U path cdpath fpath manpath
 # git-completion & git-prompt
 # for prompt # https://qiita.com/ryoichiro009/items/7957df2b48a9ea6803e0
 
-git_prompt_script="$HOME/.git-prompt.sh"
-[[ -f "${git_prompt_script}" ]] && source "${git_prompt_script}"
+git_prompt_script="${XDG_CONFIG_HOME:-$HOME}/.git-prompt.sh"
+if [[ -f "${git_prompt_script}" ]]; then
+    source "${git_prompt_script}"
+else
+    command -v git > /dev/null 2>&1 && wget -q https://raw.githubusercontent.com/git/git/master/contrib/completion/git-prompt.sh -O "${git_prompt_script}"
+    chmod +x "${git_prompt_script}"
+    source "${git_prompt_script}"
+fi
 
 GIT_PS1_SHOWDIRTYSTATE=true
 GIT_PS1_SHOWUNTRACKEDFILES=true
