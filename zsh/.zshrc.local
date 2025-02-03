@@ -1,0 +1,7 @@
+# .zshrc.local
+# 
+# Local .zshrc
+#
+#: Remove this line after editing this file as appropriate
+
+[ -f /home/tenchi/dotfiles/nvim/.nvim.zsh ] && source /home/tenchi/dotfiles/nvim/.nvim.zsh

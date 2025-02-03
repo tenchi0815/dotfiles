@@ -8,18 +8,18 @@
 # THIS FILE IS NOT INTENDED TO BE USED AS /etc/zshrc, NOR WITHOUT EDITING
 #return 0	# Remove this line after editing this file as appropriate
 
-# -------------------------------------------------------------------------------------------------------
 # Local functions
+# -------------------------------------------------------------------------------------------------------
 has() {
     command -v "$1" > /dev/null 2>&1
 }
 
-# -------------------------------------------------------------------------------------------------------
 # Search path for the cd command
+# -------------------------------------------------------------------------------------------------------
 cdpath=(.. ~ ~/src ~/zsh)
 
-# -------------------------------------------------------------------------------------------------------
 # Use hard limits, except for a smaller stack and no core dumps
+# -------------------------------------------------------------------------------------------------------
 unlimit
 limit stack 8192
 limit core 0
@@ -27,8 +27,8 @@ limit -s
 
 umask 022
 
-# -------------------------------------------------------------------------------------------------------
 # Set up aliases
+# -------------------------------------------------------------------------------------------------------
 alias mv='nocorrect mv'       # no spelling correction on mv
 alias cp='nocorrect cp'       # no spelling correction on cp
 alias mkdir='nocorrect mkdir' # no spelling correction on mkdir
@@ -38,7 +38,7 @@ alias mkdir='nocorrect mkdir' # no spelling correction on mkdir
 #alias d='dirs -v'
 #alias h=history
 #alias grep=egrep
-#alias ll='ls -alF'
+alias ll='ls -alF'
 #alias la='ls -A'
 #alias rmi='rm -i'
 #alias rmI='rm -I'
@@ -53,11 +53,12 @@ if [[ -f ~/.zsh_aliases ]]; then
     . ~/.zsh_aliases
 fi
 
-# -------------------------------------------------------------------------------------------------------
 # iab
+# -------------------------------------------------------------------------------------------------------
 setopt extended_glob
 
 typeset -A abbreviations
+#!! DO NOT set abbreviations for commands which may NOT be available
 abbreviations=(
     '...'       '../..'
     '....'      '../../..'
@@ -76,6 +77,7 @@ abbreviations=(
     "S"         "| sort -u"
     "T"         "| tail"
     "V"         "| ${VISUAL:-${EDITOR}}"
+    "v"         "vi"
     "W"         "| wc"
     "X"         "| xargs"
     "fgrep"     "grep -F"
@@ -111,8 +113,8 @@ zle -N no-magic-abbrev-expand
 bindkey " " magic-abbrev-expand
 bindkey "^x " no-magic-abbrev-expand
 
-# -------------------------------------------------------------------------------------------------------
 # enable color support of ls and also add handy aliases
+# -------------------------------------------------------------------------------------------------------
 if [[ -x /usr/bin/dircolors ]]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
@@ -125,8 +127,8 @@ if [[ -x /usr/bin/dircolors ]]; then
     alias egrep='egrep --color=auto'
 fi
 
-# -------------------------------------------------------------------------------------------------------
 # List only directories and symbolic links that point to directories
+# -------------------------------------------------------------------------------------------------------
 alias lsd='ls -ld *(-/DN)'
 
 # List only file beginning with "."
@@ -138,12 +140,13 @@ alias -g M='|more'
 alias -g H='|head'
 alias -g T='|tail'
 
-# -------------------------------------------------------------------------------------------------------
 # Shell functions
+# -------------------------------------------------------------------------------------------------------
 setenv() { typeset -x "${1}${1:+=}${(@)argv[2,$#]}" }  # csh compatibility
 freload() { while (( $# )); do; unfunction $1; autoload -U $1; shift; done }
-# -------------------------------------------------------------------------------------------------------
+
 # Where to look for autoloaded function definitions
+# -------------------------------------------------------------------------------------------------------
 fpath=($fpath ~/.zfunc)
 
 # Autoload all shell functions from all directories in $fpath (following
@@ -152,12 +155,12 @@ fpath=($fpath ~/.zfunc)
 # particular shell function). $fpath should not be empty for this to work.
 for func in $^fpath/*(N-.x:t); autoload $func
 
-# -------------------------------------------------------------------------------------------------------
 # automatically remove duplicates from these arrays
+# -------------------------------------------------------------------------------------------------------
 typeset -U path cdpath fpath manpath
 
-# -------------------------------------------------------------------------------------------------------
 # Set prompts
+# -------------------------------------------------------------------------------------------------------
 
 # git-completion & git-prompt
 # for prompt # https://qiita.com/ryoichiro009/items/7957df2b48a9ea6803e0
@@ -201,8 +204,8 @@ PROMPT=`prompt`
 RPROMPT=' %~'     # prompt for right side of screen
 command -v __git_ps1 > /dev/null 2>&1 && RPROMPT=$RPROMPT"`git-prompt`"
 
-# -------------------------------------------------------------------------------------------------------
 # Some environment variables
+# -------------------------------------------------------------------------------------------------------
 
 #export MAIL=/var/spool/mail/$USERNAME
 #export LESS=-cex3M
@@ -225,23 +228,18 @@ export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 # Kubernetes
 export KUBECONFIG=$KUBECONFIG:$HOME/.kube/config:$HOME/.kube/config_ike
 
-#export EDITOR="nvim"
-path+=("/opt/nvim-linux-"$(uname -p)"/bin")
-
 export NVM_DIR="$HOME/.nvm"
 
 export NVM_DIR="$([[ -z "${XDG_CONFIG_HOME-}" ]] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 [[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
-export DENO_INSTALL="$HOME/.deno"
-path+=("$DENO_INSTALL/bin")
 export NEXTWORD_DATA_PATH="/usr/share/nextword-data-small/"
 export TZ='Asia/Tokyo'
 
 export PATH
 
-# -------------------------------------------------------------------------------------------------------
 # don't put duplicate lines or lines starting with space in the history.
+# -------------------------------------------------------------------------------------------------------
 HISTCONTROL=ignoreboth
 
 HISTFILE=~/.zsh_history
@@ -268,14 +266,14 @@ setopt extended_history
 setopt hist_no_store         # do not save a record of history command itself
 setopt hist_reduce_blanks    # trail extra spaces when recording history
 
-# -------------------------------------------------------------------------------------------------------
 # keybindings
+# -------------------------------------------------------------------------------------------------------
 bindkey -e                 # emacs key bindings
 #bindkey ' ' magic-space    # also do history expansion on space
 bindkey '^I' complete-word # complete on tab, leave expansion to _expand
 
-# -------------------------------------------------------------------------------------------------------
 # Completion Styles
+# -------------------------------------------------------------------------------------------------------
 
 # Setup new style completion system. To see examples of the old style (compctl
 # based) programmable completion, check Misc/compctl-examples in the zsh
@@ -321,21 +319,17 @@ zstyle ':completion:*:*:(^rm):*:*files' ignored-patterns '*?.o' '*?.c~' \
 # ignore completion functions (until the _ignored completer)
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
-# fzf
-# Set up fzf key bindings and fuzzy completion
-[[ -f "$HOME/.fzf.zsh" ]] && source "$HOME/.fzf.zsh"
-
 # kubectl completion
 has kubectl && source <(kubectl completion zsh)
 
-# -------------------------------------------------------------------------------------------------------
 # Auto add hop-git ssh-key
+# -------------------------------------------------------------------------------------------------------
 if [[ -f /usr/local/bin/ssh-addkey-svc-git.sh ]]; then
 	. /usr/local/bin/ssh-addkey-svc-git.sh > /dev/null 2>&1
 fi
 
-# -------------------------------------------------------------------------------------------------------
 # tmux
+# -------------------------------------------------------------------------------------------------------
 if [[ -n $TMUX ]]; then
     ## Tmux + SSH --------------------------------------------------------
     function ssh_tmux() {
@@ -359,7 +353,9 @@ if [[ -n $TMUX ]]; then
     #fi
 fi
 
-# -------------------------------------------------------------------------------------------------------
 # Local environment dependent settings
-local_zsh=$HOME/.zshrc.local
-[[ -f $local_zsh ]] && source $local_zsh
+# -------------------------------------------------------------------------------------------------------
+local_zsh="${HOME}/.zshrc.local"
+[[ -f "${local_zsh}" ]] && source "${local_zsh}"
+
+[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh

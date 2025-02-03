@@ -1,6 +1,3 @@
-alias vim='nvim'
-alias vi='nvim'
-alias view='nvim -R'
 alias gvim='nvim-qt.exe'
 alias open='powershell.exe Invoke-Item'
 
