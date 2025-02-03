@@ -227,6 +227,7 @@ if ! empty(globpath(&rtp, 'autoload/plug.vim'))
     nmap <C-p> <Plug>MarkdownPreviewToggle
 
     "let g:denops_server_addr = '127.0.0.1:32123'
+    let g:denops#deno = expand('~/.deno/bin/deno')
     Plug 'vim-denops/denops.vim'
     Plug 'vim-denops/denops-helloworld.vim'
 
