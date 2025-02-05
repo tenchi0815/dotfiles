@@ -57,7 +57,7 @@ fi
 # -------------------------------------------------------------------------------------------------------
 setopt extended_glob
 
-typeset -A abbreviations
+typeset -Ag abbreviations
 #!! DO NOT set abbreviations for commands which may NOT be available
 abbreviations=(
     '...'       '../..'

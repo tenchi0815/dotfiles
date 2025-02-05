@@ -261,7 +261,6 @@ if ask "Do you want to install Neovim?"; then
 # Setup Neovim
 # -------------------------------------------------------------------------------------------------------
 PATH="\${PATH:+\${PATH}:}/opt/$nvim_base/bin"
-export EDITOR="nvim"
 alias vi='nvim'
 alias vim='nvim'
 alias view='nvim -R'
