@@ -319,9 +319,6 @@ zstyle ':completion:*:*:(^rm):*:*files' ignored-patterns '*?.o' '*?.c~' \
 # ignore completion functions (until the _ignored completer)
 zstyle ':completion:*:functions' ignored-patterns '_*'
 
-# kubectl completion
-has kubectl && source <(kubectl completion zsh)
-
 # Auto add hop-git ssh-key
 # -------------------------------------------------------------------------------------------------------
 if [[ -f /usr/local/bin/ssh-addkey-svc-git.sh ]]; then
