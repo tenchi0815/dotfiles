@@ -8,6 +8,7 @@ essentials=(git curl less jq make unzip xsel)
 DRYRUN=
 prefix=
 update_config=2
+XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-"${HOME}/.config/"}
 
 cd "$HOME"
 print_usage() {
@@ -65,13 +66,6 @@ ask() {
             return 1
         fi
     done
-}
-
-download_nvim() {
-    local os archi
-    os="$1"
-    archi="$2"
-    curl -LO "https://github.com/neovim/neovim/releases/download/v0.10.4/nvim-$os-$archi.tar.gz"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -267,7 +261,6 @@ if ask "Do you want to install Neovim?"; then
 # Setup Neovim
 # -------------------------------------------------------------------------------------------------------
 PATH="\${PATH:+\${PATH}:}/opt/$nvim_base/bin"
-export EDITOR="nvim"
 alias vi='nvim'
 alias vim='nvim'
 alias view='nvim -R'
@@ -284,6 +277,7 @@ EOF
                 append_line $update_config "[ -f $src ] && source $src" "$dest" "$src"
             done
         fi
+	[ -d "${XDG_CONFIG_HOME}/nvim" ] || mkdir -p "${XDG_CONFIG_HOME}/nvim"
     fi
     msg_done "Neovim"
 fi

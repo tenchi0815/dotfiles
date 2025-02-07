@@ -51,9 +51,6 @@ nnoremap k gk
 nnoremap <Down> gj
 nnoremap <Up> gk
 
-" Assign <space>to <Leader>
-let mapleader = "\<space>"
-
 " INSERT mode
 inoremap <silent> jj <ESC>
 
