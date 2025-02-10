@@ -184,8 +184,6 @@ GIT_PROMPT_SHOW_UNTRACKED_FILES=no
 GIT_PROMPT_FETCH_REMOTE_STATUS=0
 
 function prompt {
-    fg_base="%F{#93a1a1}"
-
     if [[ $TMUX ]]; then
         prompt="%# "
     else
@@ -200,11 +198,8 @@ function git-prompt {
     echo "${fg_yellow}"'$(__git_ps1)%F{default} '
 }
 
-if [[ $TERM = screen ]] || [[ $TERM = screen-256color ]] ; then
-    fg_yellow="%F{#b58900}"
-    fg_base="%F{#93a1a1}"
-fi
-
+fg_base="%F{#93a1a1}"
+fg_yellow="%F{#b58900}"
 #PROMPT='%m%# '    # default prompt
 PROMPT=`prompt`
 RPROMPT=' %~'     # prompt for right side of screen
