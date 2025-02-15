@@ -184,25 +184,38 @@ GIT_PROMPT_SHOW_UNTRACKED_FILES=no
 GIT_PROMPT_FETCH_REMOTE_STATUS=0
 
 function prompt {
+    maxlength=25
     if [[ $TMUX ]]; then
-        prompt="%# "
+        usr_host=""
     else
-        usr_host="${fg_base}%n@%M%f"
-        prompt="${usr_host}%# "
+        usr_host="${fg_green}%n@%M%f:"
     fi
 
-    echo "${prompt}"
+    #prompt="${usr_host}${fg_cyan}%10<...<%~%<< ${fg_base}%# "
+    prompt="${usr_host}${fg_cyan}%(5~|%-1~/…/%3~|%${maxlength}>..>%~%>>) ${fg_base}%# "
+    echo "${prompt}%f"
 }
 
 function git-prompt {
-    echo "${fg_yellow}"'$(__git_ps1)%F{default} '
+    echo "${fg_yellow}"'$(__git_ps1)%f '
 }
 
 fg_base="%F{#93a1a1}"
+fg_magenta="%F{#d33682}"
+fg_cyan="%F{#2aa198}"
 fg_yellow="%F{#b58900}"
+fg_green="%F{#859900}"
+#else
+#    fg_base="%F{default}"
+#    fg_magenta="%F{magenta}"
+#    fg_cyan="%F{cyan}"
+#    fg_yellow="%F{yellow}"
+#    fg_green="%F{green}"
+#fi
+
 #PROMPT='%m%# '    # default prompt
 PROMPT=`prompt`
-RPROMPT=' %~'     # prompt for right side of screen
+RPROMPT=' ${fg_base}%~'     # prompt for right side of screen
 command -v __git_ps1 > /dev/null 2>&1 && RPROMPT=$RPROMPT"`git-prompt`"
 
 # Some environment variables
