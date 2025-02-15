@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/bin/bash -u
 
 CMDNAME="$(basename "$0")"
 DIRNAME="$(cd "$(dirname "$0")"; pwd)"
@@ -97,6 +97,7 @@ append_line() {
     pat="${4:-}"
     lines=""
 
+    echo "..."
     echo "Update $file:"
     echo "  - $line"
     if [ -f "$file" ]; then
@@ -119,7 +120,6 @@ append_line() {
         fi
     fi
 
-    set -e
     if [ "$update" -eq 1 ]; then
         [ -f "$file" ] && echo >> "$file"
         echo "$line" >> "$file"
@@ -129,7 +129,50 @@ append_line() {
     fi
 
     echo
-    set +e
+}
+
+append_lines() {
+    local update lines_to_add file pat lines
+    update="$1"
+    file="$2"
+    pat="${3:-}"
+    shift 3
+    lines_to_add=("$@")
+    lines=""
+
+    echo "..."
+    echo "Update $file:"
+
+    if [ -f "$file" ]; then
+        for line in "${lines_to_add[@]}"; do
+            echo "  - $line"
+            if [ -z "$pat" ]; then
+                lines=$(\grep -nxF "$line" "$file")
+            else
+                lines=$(\grep -nxF "$pat" "$file")
+            fi
+
+            if [ -n "$lines" ]; then
+                echo "    - Already exists:"
+                sed 's/^/        Line /' <<< "$lines"
+
+                update=0
+            fi
+
+            if [ "$update" -eq 1 ]; then
+                echo "$line" >> "$file"
+                echo "    + Added"
+            else
+                echo "    ~ Skipped"
+            fi
+        done
+    else
+        for line in "${lines_to_add[@]}"; do
+            echo "$line" >> "$file"
+            echo "    + Added"
+        done
+    fi
+    [ "$update" -eq 1 ] && echo >> "$file"      # Add blank line at the end of file if $update is 1
 }
 
 append_config () {
@@ -146,26 +189,28 @@ append_config () {
 }
 
 # Detect the package manager and install essential packages.
-if has apt; then
-    echo "Detected apt package manager"
-    pkg_mgr='apt'
-    echo '>>> Essentials'
-    run sudo "${pkg_mgr}" update
-    run sudo "${pkg_mgr}" install -y "${essentials[@]}" shellcheck
-elif has dnf; then
-    echo "Detected dnf package manager"
-    pkg_mgr='dnf'
-    echo '>>> Essentials'
-    run sudo "${pkg_mgr}" update
-    run sudo "${pkg_mgr}" install -y "${essentials[@]}" ShellCheck
-elif has yum; then
-    echo "Detected yum package manager"
-    pkg_mgr='yum'
-    echo '>>> Essentials'
-    run sudo "${pkg_mgr}" update
-    run sudo "${pkg_mgr}" install -y "${essentials[@]}" ShellCheck
-else
-    errExit "No compatible package manager found."
+if ask "Do you want to install essential packages?"; then
+    if has apt; then
+        echo "Detected apt package manager"
+        pkg_mgr='apt'
+        echo '>>> Essentials'
+        run sudo "${pkg_mgr}" update
+        run sudo "${pkg_mgr}" install -y "${essentials[@]}" shellcheck
+    elif has dnf; then
+        echo "Detected dnf package manager"
+        pkg_mgr='dnf'
+        echo '>>> Essentials'
+        run sudo "${pkg_mgr}" update
+        run sudo "${pkg_mgr}" install -y "${essentials[@]}" ShellCheck
+    elif has yum; then
+        echo "Detected yum package manager"
+        pkg_mgr='yum'
+        echo '>>> Essentials'
+        run sudo "${pkg_mgr}" update
+        run sudo "${pkg_mgr}" install -y "${essentials[@]}" ShellCheck
+    else
+        errExit "No compatible package manager found."
+    fi
 fi
 echo
 
@@ -209,45 +254,49 @@ echo
 
 # Neovim
 echo '>>> Neovim'
-if ask "Do you want to install Neovim?"; then
-    msg_inprogress "Neovim"
-    binary_available=1
-    binary_error=""
-    uname="$(uname -sm)"
-    case "$uname" in
-        Darwin\ arm64)      os="macos" archi="arm64"  ;;
-        Darwin\ x86_64)     os="macos" archi="arm64"  ;;
-        Linux\ armv5*)      binary_error=1   ;;
-        Linux\ armv6*)      binary_error=1   ;;
-        Linux\ armv7*)      binary_error=1   ;;
-        Linux\ armv8*)      os="linux" archi="arm64"   ;;
-        Linux\ aarch64*)    os="linux" archi="x86_64"  ;;
-        Linux\ *64)         os="linux" archi="x86_64"   ;;
-        CYGWIN*\ *64)       binary_error=1 binary_available=0    ;;
-        MINGW*\ *64)        binary_error=1 binary_available=0    ;;
-        MSYS*\ *64)         binary_error=1 binary_available=0    ;;
-        Windows*\ *64)      binary_error=1 binary_available=0    ;;
-        *)                  binary_error=1   ;;
-    esac
-    if [ -n "$binary_error" ]; then
-        if [ $binary_available -eq 0 ]; then
-            echo "Prebuilt binary for $uname is available. Install manually from https://github.com/neovim/neovim/releases"
+if has nvim; then
+    msg_already "Neovim"
+else
+    if ask "Do you want to install Neovim?"; then
+        msg_inprogress "Neovim"
+        binary_available=1
+        binary_error=""
+        uname="$(uname -sm)"
+        case "$uname" in
+            Darwin\ arm64)      os="macos" archi="arm64"  ;;
+            Darwin\ x86_64)     os="macos" archi="arm64"  ;;
+            Linux\ armv5*)      binary_error=1   ;;
+            Linux\ armv6*)      binary_error=1   ;;
+            Linux\ armv7*)      binary_error=1   ;;
+            Linux\ armv8*)      os="linux" archi="arm64"   ;;
+            Linux\ aarch64*)    os="linux" archi="x86_64"  ;;
+            Linux\ *64)         os="linux" archi="x86_64"   ;;
+            CYGWIN*\ *64)       binary_error=1 binary_available=0    ;;
+            MINGW*\ *64)        binary_error=1 binary_available=0    ;;
+            MSYS*\ *64)         binary_error=1 binary_available=0    ;;
+            Windows*\ *64)      binary_error=1 binary_available=0    ;;
+            *)                  binary_error=1   ;;
+        esac
+        if [ -n "$binary_error" ]; then
+            if [ $binary_available -eq 0 ]; then
+                echo "Prebuilt binary for $uname is available. Install manually from https://github.com/neovim/neovim/releases"
+            else
+                echo "No prebuilt binary for $uname ..."
+                echo "Neovim may not suport $uname platform."
+            fi
         else
-            echo "No prebuilt binary for $uname ..."
-            echo "Neovim may not suport $uname platform."
+            echo "Downloading nvim ..."
+            nvim_base="nvim-${os}-${archi}"
+            if [ -x /opt/"$nvim_base"/bin/nvim ]; then
+                echo "  - Already exists"
+            else
+                run curl -LO "https://github.com/neovim/neovim/releases/download/v0.10.4/${nvim_base}.tar.gz"
+                run sudo rm -rf /opt/nvim
+                run sudo tar -C /opt -xzf nvim-"${os}"-"${archi}".tar.gz
+            fi
+            #echo 'export PATH="$PATH:/opt/nvim-linux64/bin"' >> ~/.bashrc
+            echo
         fi
-    else
-        echo "Downloading nvim ..."
-        nvim_base="nvim-${os}-${archi}"
-        if [ -x /opt/"$nvim_base"/bin/nvim ]; then
-            echo "  - Already exists"
-        else
-            run curl -LO "https://github.com/neovim/neovim/releases/download/v0.10.4/${nvim_base}.tar.gz"
-            run sudo rm -rf /opt/nvim
-            run sudo tar -C /opt -xzf nvim-"${os}"-"${archi}".tar.gz
-        fi
-        #echo 'export PATH="$PATH:/opt/nvim-linux64/bin"' >> ~/.bashrc
-        echo
 
         if ask "Do you want to update your shell configuration files?"; then
             update_config=1
@@ -285,16 +334,39 @@ echo
 
 # zsh-git-escape-magic
 echo '>>> zsh-git-escape-magic'
-if [ -f /usr/share/zsh/functions/Zle/git-escape-magic ]; then
-    msg_already "git-escape-magic"
-else
-    has zsh || { echo "zsh is not found. Install zsh first."; :; }
-    has git || { echo "git is not found. Install git first."; :; }
-    msg_inprogress "git-escape-magic"
-    run git clone https://github.com/knu/zsh-git-escape-magic.git
-    run sudo mv zsh-git-escape-magic /usr/share/zsh/functions/Zle/
-    run sudo ln -s /usr/share/zsh/functions/Zle/zsh-git-escape-magic/git-escape-magic /usr/share/zsh/functions/Zle/git-escape-magic
-    msg_done "git-escape-magic"
+if has zsh; then
+    if has git-escape-magic; then
+        msg_already "git-escape-magic"
+    else
+        has git || { echo "git is not found. Install git first."; :; }
+        msg_inprogress "git-escape-magic"
+        if [[ ! -f /usr/share/zsh/functions/Zle/git-escape-magic ]]; then
+            run git clone https://github.com/knu/zsh-git-escape-magic.git
+            run sudo mv zsh-git-escape-magic /usr/share/zsh/functions/Zle/
+            run sudo ln -s /usr/share/zsh/functions/Zle/zsh-git-escape-magic/git-escape-magic /usr/share/zsh/functions/Zle/git-escape-magic
+            msg_done "git-escape-magic"
+        else
+            msg_already "git-escape-magic"
+        fi
+        if ask "Do you want to update your shell configuration files?"; then
+            update_config=1
+            # Lines to be added
+            lines=(
+                "# Setup git-escape-magic"
+                "# -------------------------------------------------------------------------------------------------------"
+                "autoload -Uz git-escape-magic"
+                "git-escape-magic"
+            )
+            if has zsh; then
+                dest=${HOME}/.zshrc.local
+                [ ! -e "$dest" ] && dest=${ZDOTDIR:-$HOME}/.zshrc
+                append_lines $update_config "$dest" "" "${lines[@]}"
+                #while read line; do echo $line; done <<< $lines
+            else
+                echo "Nothing to do"
+            fi
+        fi
+    fi
 fi
 echo
 
@@ -305,8 +377,8 @@ if [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim" ]] |
 else
     if ask "Do you want to install vim-plug?"; then
         if has nvim; then
-            [[ "$(uname -s)" == "Linux" ]] && run sh -c 'curl -fLoq "${XDG_DATA_HOME:-$HOME/.local/share}"/nvim/site/autoload/plug.vim --create-dirs \
-                https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim' \
+            [[ "$(uname -s)" == "Linux" ]] && run sh -c "curl -fLoq ${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim --create-dirs \
+                https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim" \
                 || echo "Thix script does not suport platform $(uname -s). Install manually."
                         elif has vim; then
                             [[ "$(uname -s)" == "Linux" ]] && run curl -fLoq ~/.vim/autoload/plug.vim --create-dirs \
