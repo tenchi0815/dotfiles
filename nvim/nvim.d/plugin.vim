@@ -52,7 +52,7 @@ if ! empty(globpath(&rtp, 'autoload/plug.vim'))
     "   syntax off            " Disable syntax highlighting
 
     " Assign <space>to <Leader>
-    let mapleader = '<space>'
+    let mapleader = "\<space>"
 
     " vim-easymotion
     " <Leader>f{char} to move to {char}
