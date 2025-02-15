@@ -2,7 +2,7 @@
 
 CMDNAME="$(basename "$0")"
 DIRNAME="$(cd "$(dirname "$0")"; pwd)"
-shells="bash zsh fish"
+shells="bash zsh"
 readonly CMDNAME DIRNAME shells
 essentials=(git curl less jq make unzip xsel)
 DRYRUN=
@@ -177,7 +177,6 @@ append_lines() {
 
 append_config () {
     for shell in $shells; do
-        [[ "$shell" = fish ]] && continue
         if [ "$shell" = zsh ]; then
             dest=${HOME}/.zshrc.local
             [ ! -e "$dest" ] && dest=${ZDOTDIR:-$HOME}/.zshrc
@@ -187,6 +186,21 @@ append_config () {
         fi
     done
 }
+
+# Get system info
+uname_s="$(uname -s)"
+uname_m="$(uname -m)"
+case "$uname_s" in
+    Darwin)             os="macos"  ;;
+    Linux)              os="linux"  ;;
+    CYGWIN*\ *64)       os="windows"    ;;
+    MINGW*\ *64)        os="windows"    ;;
+    MSYS*\ *64)         os="windows"    ;;
+    Windows*\ *64)      os="windows"    ;;
+    *)                  os="$uname_s"   ;;
+esac
+echo "Your operating system is \"$os\" on \"$uname_m\" architecture"
+echo
 
 # Detect the package manager and install essential packages.
 if ask "Do you want to install essential packages?"; then
@@ -261,28 +275,21 @@ else
         msg_inprogress "Neovim"
         binary_available=1
         binary_error=""
-        uname="$(uname -sm)"
-        case "$uname" in
-            Darwin\ arm64)      os="macos" archi="arm64"  ;;
-            Darwin\ x86_64)     os="macos" archi="arm64"  ;;
-            Linux\ armv5*)      binary_error=1   ;;
-            Linux\ armv6*)      binary_error=1   ;;
-            Linux\ armv7*)      binary_error=1   ;;
-            Linux\ armv8*)      os="linux" archi="arm64"   ;;
-            Linux\ aarch64*)    os="linux" archi="x86_64"  ;;
-            Linux\ *64)         os="linux" archi="x86_64"   ;;
-            CYGWIN*\ *64)       binary_error=1 binary_available=0    ;;
-            MINGW*\ *64)        binary_error=1 binary_available=0    ;;
-            MSYS*\ *64)         binary_error=1 binary_available=0    ;;
-            Windows*\ *64)      binary_error=1 binary_available=0    ;;
-            *)                  binary_error=1   ;;
+        [[ "$uname_s" == "windows" ]] && binary_available=0
+        case "$uname_m" in
+            arm64)      archi="arm64"  ;;
+            x86_64)     archi="x86_64"  ;;
+            armv8*)     archi="arm64"   ;;
+            aarch64*)   archi="arm64"  ;;
+            *64)        archi="x86_64"   ;;
+            *)          binary_error=1   ;;
         esac
         if [ -n "$binary_error" ]; then
             if [ $binary_available -eq 0 ]; then
-                echo "Prebuilt binary for $uname is available. Install manually from https://github.com/neovim/neovim/releases"
+                echo "Prebuilt binary for $uname_s is available. Install manually from https://github.com/neovim/neovim/releases"
             else
-                echo "No prebuilt binary for $uname ..."
-                echo "Neovim may not suport $uname platform."
+                echo "No prebuilt binary for $uname_s ..."
+                echo "Neovim may not suport $uname_s platform."
             fi
         else
             echo "Downloading nvim ..."
@@ -301,7 +308,6 @@ else
         if ask "Do you want to update your shell configuration files?"; then
             update_config=1
             for shell in $shells; do
-                [[ "$shell" = fish ]] && continue
                 prefix="${DIRNAME}/nvim/.nvim"
                 src=${prefix}.${shell}
                 echo -n "Generate $src ... "
@@ -315,7 +321,6 @@ alias vim='nvim'
 alias view='nvim -R'
 
 EOF
-
                 echo "OK"
                 if [ "$shell" = 'zsh' ]; then
                     dest=${HOME}/.zshrc.local
@@ -380,12 +385,12 @@ else
             [[ "$(uname -s)" == "Linux" ]] && run sh -c "curl -fLoq ${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim --create-dirs \
                 https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim" \
                 || echo "Thix script does not suport platform $(uname -s). Install manually."
-                        elif has vim; then
-                            [[ "$(uname -s)" == "Linux" ]] && run curl -fLoq ~/.vim/autoload/plug.vim --create-dirs \
-                                https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
-                                || echo "Thix script does not suport platform $(uname -s). Install manually."
-                                                        else
-                                                            echo "Neither nvim nor vim is installed."
+        elif has vim; then
+            [[ "$(uname -s)" == "Linux" ]] && run curl -fLoq ~/.vim/autoload/plug.vim --create-dirs \
+                https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim \
+                || echo "Thix script does not suport platform $(uname -s). Install manually."
+        else
+            echo "Neither nvim nor vim is installed."
         fi
     fi
 fi
@@ -406,4 +411,47 @@ else
 fi
 echo
 
+# kubectl
+echo '>>> kubectl'
+if has kubectl; then
+    msg_already "kubectl"
+else
+    if ask "Do you want to install kubectl?"; then
+        case "$uname_m" in
+            arm64)      archi="arm64"  ;;
+            x86_64)     archi="amd64"  ;;
+            armv8*)     archi="arm64"   ;;
+            aarch64*)   archi="arm64"  ;;
+            *64)        archi="amd64"   ;;
+            *)          binary_error=1   ;;
+        esac
+        [[ "$os" == "macos" ]] && os="darwin"
+        run curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/${os}/${archi}/kubectl"
+        run curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/${os}/${archi}/kubectl.sha256"
+        echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check || exit 1
+        rm kubectl.sha256
+
+        if [[ "$os" == "darwin" ]]; then
+            chmod +x ./kubectl
+            sudo mv ./kubectl /usr/local/bin/kubectl
+            sudo chown root: /usr/local/bin/kubectl
+        elif [[ "$os" == "linux" ]]; then
+            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+        fi
+    fi
+fi
+echo
+echo '  >>> kubectl completion'
+if ask "Do you want to update your shell configuration files?"; then
+    update_config=1
+    for shell in $shells; do
+        if [ "$shell" = 'zsh' ]; then
+            dest=${HOME}/.zshrc.local
+            [ ! -e "$dest" ] && dest=${ZDOTDIR:-$HOME}/.zshrc
+        elif [ "$shell" = 'bash' ]; then
+            dest=~/.bashrc
+        fi
+        append_line $update_config "source <(kubectl completion $shell)" "$dest" "$src"
+    done
+fi
 echo 'done.'
