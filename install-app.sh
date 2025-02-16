@@ -2,13 +2,13 @@
 
 CMDNAME="$(basename "$0")"
 DIRNAME="$(cd "$(dirname "$0")"; pwd)"
-shells="bash zsh"
-readonly CMDNAME DIRNAME shells
+SHELLS="bash zsh"
+readonly CMDNAME DIRNAME SHELLS
 essentials=(git curl less jq make unzip xsel)
 DRYRUN=
 prefix=
 update_config=2
-XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-"${HOME}/.config/"}
+XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-"${HOME}/.config"}
 
 cd "$HOME"
 print_usage() {
@@ -34,7 +34,10 @@ msg_inprogress() {
     echo "Installing $1 ..."
 }
 msg_done() {
-    echo "$1 sucessfully installed"
+    echo "✅ $1 sucessfully installed"
+}
+msg_skip() {
+    echo '⏩ Skipped'
 }
 
 run() {
@@ -42,7 +45,6 @@ run() {
         echo -e "${DRYRUN}$(quote_each_args "$@")"
     else
         "$@"
-        echo 'done.'
     fi
 }
 
@@ -131,59 +133,17 @@ append_line() {
     echo
 }
 
-append_lines() {
-    local update lines_to_add file pat lines
-    update="$1"
-    file="$2"
-    pat="${3:-}"
-    shift 3
-    lines_to_add=("$@")
-    lines=""
-
-    echo "..."
-    echo "Update $file:"
-
-    if [ -f "$file" ]; then
-        for line in "${lines_to_add[@]}"; do
-            echo "  - $line"
-            if [ -z "$pat" ]; then
-                lines=$(\grep -nxF "$line" "$file")
-            else
-                lines=$(\grep -nxF "$pat" "$file")
-            fi
-
-            if [ -n "$lines" ]; then
-                echo "    - Already exists:"
-                sed 's/^/        Line /' <<< "$lines"
-
-                update=0
-            fi
-
-            if [ "$update" -eq 1 ]; then
-                echo "$line" >> "$file"
-                echo "    + Added"
-            else
-                echo "    ~ Skipped"
-            fi
-        done
-    else
-        for line in "${lines_to_add[@]}"; do
-            echo "$line" >> "$file"
-            echo "    + Added"
-        done
-    fi
-    [ "$update" -eq 1 ] && echo >> "$file"      # Add blank line at the end of file if $update is 1
-}
-
 append_config () {
+    local shells
+    shells="${1:-$SHELLS}"
     for shell in $shells; do
         if [ "$shell" = zsh ]; then
             dest=${HOME}/.zshrc.local
             [ ! -e "$dest" ] && dest=${ZDOTDIR:-$HOME}/.zshrc
         else
             dest=~/.bashrc
-            append_line $update_config "[ -f ${prefix}.${shell} ] && source ${prefix}.${shell}" "$dest" "${prefix}.${shell}"
         fi
+            append_line $update_config "[ -f ${prefix}.${shell} ] && source ${prefix}.${shell}" "$dest" "${prefix}.${shell}"
     done
 }
 
@@ -199,7 +159,9 @@ case "$uname_s" in
     Windows*\ *64)      os="windows"    ;;
     *)                  os="$uname_s"   ;;
 esac
+echo '----------------------------------------------------------------'
 echo "Your operating system is \"$os\" on \"$uname_m\" architecture"
+echo '----------------------------------------------------------------'
 echo
 
 # Detect the package manager and install essential packages.
@@ -226,66 +188,80 @@ if ask "Do you want to install essential packages?"; then
         errExit "No compatible package manager found."
     fi
 fi
+echo '✅ Finished'
+echo '................................................................'
 echo
 
 # zsh
-echo '>>> zsh'
 if has zsh; then
     msg_already "zsh"
+    msg_skip
 else
     if ask "Do you want to install zsh?"; then
         msg_inprogress "zsh"
         run sudo "${pkg_mgr}" install -y zsh
         ask "Do you want to set default shell to zsh?" && run chsh -s /bin/zsh
+        msg_done "zsh"
+    else
+        msg_skip
     fi
 fi
+echo '................................................................'
 echo
 
 # tmux
-echo '>>> tmux'
 if has tmux; then
     msg_already "tmux"
+    msg_skip
 else
     if ask "Do you want to install tmux?"; then
         msg_inprogress "tmux"
         run sudo "${pkg_mgr}" install -y tmux
+        msg_done "tmux"
+    else
+        msg_skip
     fi
 fi
+echo '................................................................'
 echo
 
 # fzf
-echo '>>> fzf'
 if has fzf; then
     msg_already "fzf"
+    msg_skip
 else
     if ask "Do you want to install fzf?"; then
         msg_inprogress "fzf"
         run git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf
         run ~/.fzf/install && msg_done "fzf"
+    else
+        msg_skip
     fi
 fi
+echo '................................................................'
 echo
 
 # Neovim
-echo '>>> Neovim'
-if has nvim; then
-    msg_already "Neovim"
-else
-    if ask "Do you want to install Neovim?"; then
+if ask "Do you want to install Neovim?"; then
+    binary_available=1
+    binary_error=""
+    [[ "$uname_s" == "windows" ]] && binary_available=0
+    case "$uname_m" in
+        arm64)      archi="arm64"  ;;
+        x86_64)     archi="x86_64"  ;;
+        armv8*)     archi="arm64"   ;;
+        aarch64*)   archi="arm64"  ;;
+        *64)        archi="x86_64"   ;;
+        *)          binary_error=1   ;;
+    esac
+    nvim_base="nvim-${os}-${archi}"
+    if has nvim; then
+        msg_already "Neovim"
+        msg_skip
+    else
         msg_inprogress "Neovim"
-        binary_available=1
-        binary_error=""
-        [[ "$uname_s" == "windows" ]] && binary_available=0
-        case "$uname_m" in
-            arm64)      archi="arm64"  ;;
-            x86_64)     archi="x86_64"  ;;
-            armv8*)     archi="arm64"   ;;
-            aarch64*)   archi="arm64"  ;;
-            *64)        archi="x86_64"   ;;
-            *)          binary_error=1   ;;
-        esac
         if [ -n "$binary_error" ]; then
-            if [ $binary_available -eq 0 ]; then
+            if [ "$binary_available" -eq 0 ]; then
                 echo "Prebuilt binary for $uname_s is available. Install manually from https://github.com/neovim/neovim/releases"
             else
                 echo "No prebuilt binary for $uname_s ..."
@@ -293,26 +269,29 @@ else
             fi
         else
             echo "Downloading nvim ..."
-            nvim_base="nvim-${os}-${archi}"
             if [ -x /opt/"$nvim_base"/bin/nvim ]; then
                 echo "  - Already exists"
+                msg_skip
             else
                 run curl -LO "https://github.com/neovim/neovim/releases/download/v0.10.4/${nvim_base}.tar.gz"
                 run sudo rm -rf /opt/nvim
                 run sudo tar -C /opt -xzf nvim-"${os}"-"${archi}".tar.gz
+                [ -d "${XDG_CONFIG_HOME}/nvim" ] || mkdir -p "${XDG_CONFIG_HOME}/nvim"
+                msg_done "Neovim"
             fi
             #echo 'export PATH="$PATH:/opt/nvim-linux64/bin"' >> ~/.bashrc
             echo
         fi
-
-        if ask "Do you want to update your shell configuration files?"; then
-            update_config=1
-            for shell in $shells; do
-                prefix="${DIRNAME}/nvim/.nvim"
-                src=${prefix}.${shell}
+    fi
+    if ask "Do you want to update your shell configuration files?"; then
+        update_config=1
+        prefix="${XDG_CONFIG_HOME}/nvim/.nvim"
+        for shell in $SHELLS; do
+            src=${prefix}.${shell}
+            if [ ! -f "$src" ]; then
                 echo -n "Generate $src ... "
 
-                cat > "$src" << EOF
+                run cat > "$src" << EOF
 # Setup Neovim
 # -------------------------------------------------------------------------------------------------------
 PATH="\${PATH:+\${PATH}:}/opt/$nvim_base/bin"
@@ -321,27 +300,28 @@ alias vim='nvim'
 alias view='nvim -R'
 
 EOF
+
                 echo "OK"
-                if [ "$shell" = 'zsh' ]; then
-                    dest=${HOME}/.zshrc.local
-                    [ ! -e "$dest" ] && dest=${ZDOTDIR:-$HOME}/.zshrc
-                else
-                    dest=~/.bash_profile # if .zshrc.local
-                fi
-                append_line $update_config "[ -f $src ] && source $src" "$dest" "$src"
-            done
-        fi
-	[ -d "${XDG_CONFIG_HOME}/nvim" ] || mkdir -p "${XDG_CONFIG_HOME}/nvim"
+            else
+                echo "$src already exists. Skipping ... "
+            fi
+        done
+        run append_config
+    else
+        msg_skip
     fi
-    msg_done "Neovim"
+else
+    msg_skip
 fi
+echo '................................................................'
 echo
 
 # zsh-git-escape-magic
-echo '>>> zsh-git-escape-magic'
+#echo 'zsh-git-escape-magic ------------------------------------------>'
 if has zsh; then
     if has git-escape-magic; then
         msg_already "git-escape-magic"
+        msg_skip
     else
         has git || { echo "git is not found. Install git first."; :; }
         msg_inprogress "git-escape-magic"
@@ -349,36 +329,38 @@ if has zsh; then
             run git clone https://github.com/knu/zsh-git-escape-magic.git
             run sudo mv zsh-git-escape-magic /usr/share/zsh/functions/Zle/
             run sudo ln -s /usr/share/zsh/functions/Zle/zsh-git-escape-magic/git-escape-magic /usr/share/zsh/functions/Zle/git-escape-magic
-            msg_done "git-escape-magic"
-        else
-            msg_already "git-escape-magic"
         fi
         if ask "Do you want to update your shell configuration files?"; then
             update_config=1
-            # Lines to be added
-            lines=(
-                "# Setup git-escape-magic"
-                "# -------------------------------------------------------------------------------------------------------"
-                "autoload -Uz git-escape-magic"
-                "git-escape-magic"
-            )
-            if has zsh; then
-                dest=${HOME}/.zshrc.local
-                [ ! -e "$dest" ] && dest=${ZDOTDIR:-$HOME}/.zshrc
-                append_lines $update_config "$dest" "" "${lines[@]}"
-                #while read line; do echo $line; done <<< $lines
+            prefix="${XDG_CONFIG_HOME}/git-escape-magic"
+            src="${prefix}.zsh"
+            if [ ! -f "$src" ]; then
+                echo -n "Generate $src ... "
+
+                run cat > "$src" << EOF
+# Setup git-escape-magic
+autoload -Uz git-escape-magic
+git-escape-magic
+
+EOF
             else
-                echo "Nothing to do"
+                echo "$src already exists. Skipping ... "
             fi
+            run append_config "zsh"
+            msg_done "git-escape-magic"
+        else
+            msg_skip
         fi
     fi
 fi
+echo '................................................................'
 echo
 
 # vim-plug
-echo '>>> vim-plug'
+#echo 'vim-plug ------------------------------------------------------>'
 if [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim" ]] ||  [[ -f "${XDG_DATA_HOME:-$HOME/.local/share}/nvim/site/autoload/plug.vim" ]]; then
     msg_already "vim-plug"
+    msg_skip
 else
     if ask "Do you want to install vim-plug?"; then
         if has nvim; then
@@ -392,31 +374,39 @@ else
         else
             echo "Neither nvim nor vim is installed."
         fi
+    else
+        msg_skip
     fi
 fi
+echo '................................................................'
 echo
 
 # deno
-echo '>>> deno'
 if has deno; then
-    msg_already "deno"
+    msg_already "Deno"
+    msg_skip
 else
     if ask "Do you want to install Deno?"; then
         if [ -x "${DENO_INSTALL:-$HOME/.deno}/bin/deno" ]; then
             echo "  - Already exists"
+            msg_skip
         else
             run curl -fsSL https://deno.land/install.sh | run sh
+            [ $? -eq 0 ] && msg_done "Deno"
         fi
+    else
+        msg_skip
     fi
 fi
+echo '................................................................'
 echo
 
 # kubectl
-echo '>>> kubectl'
-if has kubectl; then
-    msg_already "kubectl"
-else
-    if ask "Do you want to install kubectl?"; then
+if ask "Do you want to install kubectl?"; then
+    if has kubectl; then
+        msg_already "kubectl"
+        msg_skip
+    else
         case "$uname_m" in
             arm64)      archi="arm64"  ;;
             x86_64)     archi="amd64"  ;;
@@ -428,30 +418,35 @@ else
         [[ "$os" == "macos" ]] && os="darwin"
         run curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/${os}/${archi}/kubectl"
         run curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/${os}/${archi}/kubectl.sha256"
-        echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check || exit 1
-        rm kubectl.sha256
+        run echo "$(cat kubectl.sha256)  kubectl" | sha256sum --check || exit 1
+        run rm kubectl.sha256
 
         if [[ "$os" == "darwin" ]]; then
-            chmod +x ./kubectl
-            sudo mv ./kubectl /usr/local/bin/kubectl
-            sudo chown root: /usr/local/bin/kubectl
+            run chmod +x ./kubectl
+            run sudo mv ./kubectl /usr/local/bin/kubectl
+            run sudo chown root: /usr/local/bin/kubectl
         elif [[ "$os" == "linux" ]]; then
-            sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+            run sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
         fi
+        msg_done "kubectl"
     fi
+    if ask "Do you want to update your shell configuration files?"; then
+        update_config=1
+        for shell in $SHELLS; do
+            if [ "$shell" = 'zsh' ]; then
+                dest=${HOME}/.zshrc.local
+                [ ! -e "$dest" ] && dest=${ZDOTDIR:-$HOME}/.zshrc
+            elif [ "$shell" = 'bash' ]; then
+                dest=~/.bashrc
+            fi
+            run append_line $update_config "source <(kubectl completion $shell)" "$dest"
+        done
+    else
+        msg_skip
+    fi
+else
+    msg_skip
 fi
+echo '................................................................'
 echo
-echo '  >>> kubectl completion'
-if ask "Do you want to update your shell configuration files?"; then
-    update_config=1
-    for shell in $shells; do
-        if [ "$shell" = 'zsh' ]; then
-            dest=${HOME}/.zshrc.local
-            [ ! -e "$dest" ] && dest=${ZDOTDIR:-$HOME}/.zshrc
-        elif [ "$shell" = 'bash' ]; then
-            dest=~/.bashrc
-        fi
-        append_line $update_config "source <(kubectl completion $shell)" "$dest" "$src"
-    done
-fi
-echo 'done.'
+echo 'Finished!'
