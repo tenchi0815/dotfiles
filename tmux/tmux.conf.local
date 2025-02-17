@@ -1,0 +1,58 @@
+# Color variables ❯❯❯
+# ----------------------------------------------------------------------------------
+bg_time=$MAGENTA
+fg_cwin=$MAGENTA
+fg_border=$YELLOW
+fg_border_active=$BASE01
+#bg_status=$TEMPUS_DK_BK
+bg_status=$BASE03
+#fg_status=$TEMPUS_LT_WH
+fg_status=$BASE00
+bg_status_left=$bg_status
+
+# Status line ❯❯❯
+# ----------------------------------------------------------------------------------
+set -g status-style "bg=$bg_status,fg=$fg_status"
+
+set -g status-interval 15
+#weather='#(curl wttr.in/Tokyo\?format\="%%l:%%20%%t&period=60")' ### !!! would destroy status bar using with %c(emoji) !!!
+
+set -g status-right "" # Reset style
+
+set -ag status-right "#[fg=$fg_status]$TMUX_POWERLINE_SEPARATOR_LEFT_BOLD#[reverse] " # Reversed style
+#set -g status-right "$NF_MD_IP_NETWORK #(hostname -I | awk '{print $1}') " # Show Local IP address
+set -ag status-right '#U@#H '
+#set -ag status-right "$TMUX_POWERLINE_SEPARATOR_LEFT_THIN ${weather} " # Show weather forecast
+set -ag status-right "$TMUX_POWERLINE_SEPARATOR_LEFT_THIN %F %R"
+set -g status-right-length 120
+
+# ❯❯ Current window window-status format
+set-window-option -g window-status-style "bg=default"
+set-window-option -g window-status-separator " "
+set-window-option -g window-status-format " #I:#W"
+set-window-option -g window-status-current-format "#[fg=$fg_cwin] #I:#W#{?window_flags,#{window_flags}, }#[default]"
+
+set -g status-left "#[bg=$bg_status_left]#{?client_prefix,#[reverse],}[#S]"
+#set-option -g status-left "#[fg=$BASE01,bg=$BASE03]$TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD "
+
+# Pane border ❯❯❯
+# ----------------------------------------------------------------------------------
+set -g pane-active-border-style "fg=$fg_border_active"
+
+# ❯❯ show git status
+#set -ag status-left "#[bg=$BASE03]#(~/tmux-git-prompt/tmux-git-prompt #{pane_current_path})"
+
+set -g status-left-length 100
+set -g pane-border-status off
+set -g pane-border-format "#[fg=$fg_border]#(~/tmux-git-prompt/tmux-git-prompt #{pane_current_path}) #[fg=$fg_status]#(echo #{pane_current_path} | sed 's#$HOME#~#g') "
+#set -g pane-border-format '#[fg=yellow]#(git -C #{pane_current_path} rev-parse --abbrev-ref HEAD)'
+
+# ❯❯ If running inside tmux ($TMUX is set), then change the status line to red
+%if #{TMUX}
+set -g status-bg red
+%endif
+
+# Clipboard ❯❯❯
+# ----------------------------------------------------------------------------------
+set -g set-clipboard on
+
