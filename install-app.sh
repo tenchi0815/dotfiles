@@ -4,7 +4,7 @@ CMDNAME="$(basename "$0")"
 DIRNAME="$(cd "$(dirname "$0")"; pwd)"
 SHELLS="bash zsh"
 readonly CMDNAME DIRNAME SHELLS
-essentials=(git curl less jq make unzip xsel)
+essentials=(git curl less jq make unzip)
 DRYRUN=
 prefix=
 update_config=2
