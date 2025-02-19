@@ -34,6 +34,11 @@ set fileformats=unix,dos,mac
 set nu
 " Enable sytax highlighting
 syntax enable
+" Highlight extra space
+autocmd BufWinEnter <buffer> match Error /\s\+$/
+autocmd InsertEnter <buffer> match Error /\s\+\%#\@<!$/
+autocmd InsertLeave <buffer> match Error /\s\+$/
+autocmd BufWinLeave <buffer> call clearmatches()
 " Tab stop and shift width
 set ts=4 sw=4
 set expandtab
