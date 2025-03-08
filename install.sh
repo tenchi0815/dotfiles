@@ -70,5 +70,6 @@ echo
 # TMUX
 echo "Making symbolic links to tmux config files..."
 has tmux && symlink "${TMUXDIR}/tmux.conf" "${HOME}/.tmux.conf"
+has tmux && symlink "${TMUXDIR}/tmux.conf.local" "${HOME}/.tmux.conf.local"
 echo 'done.'
 echo
