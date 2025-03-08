@@ -1,5 +1,10 @@
 #!/bin/bash -u
 
+    #
+    # install-app.sh
+    # Install applications and be ready
+    #
+    
 CMDNAME="$(basename "$0")"
 DIRNAME="$(cd "$(dirname "$0")"; pwd)"
 SHELLS="bash zsh"
@@ -299,6 +304,7 @@ alias vi='nvim'
 alias vim='nvim'
 alias view='nvim -R'
 
+export NEXTWORD_DATA_PATH="${XDG_CONFIG_HOME}/nvim/nextword-data-small"
 EOF
 
                 echo "OK"
