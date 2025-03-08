@@ -66,6 +66,9 @@ augroup tsv_files
     autocmd BufRead,BufNewFile *.tsv setlocal noexpandtab
 augroup END
 
+" Clipboard integration
+set clipboard+=unnamedplus
+
 " " Aesthetic
 "------------------------------------------------------------------------------
 set termguicolors
