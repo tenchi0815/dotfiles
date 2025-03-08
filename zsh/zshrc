@@ -239,9 +239,6 @@ export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 # Use ~~ as the trigger sequence instead of the default **
 #export FZF_COMPLETION_TRIGGER='~~'
 
-# Kubernetes
-export KUBECONFIG=$KUBECONFIG:$HOME/.kube/config:$HOME/.kube/config_ike
-
 export NVM_DIR="$HOME/.nvm"
 
 export NVM_DIR="$([[ -z "${XDG_CONFIG_HOME-}" ]] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
@@ -278,6 +275,9 @@ setopt transient_rprompt
 setopt extended_history
 setopt hist_no_store         # do not save a record of history command itself
 setopt hist_reduce_blanks    # trail extra spaces when recording history
+
+# Disable stty stop keybind
+tty -s && stty stop undef # C-s
 
 # keybindings
 # -------------------------------------------------------------------------------------------------------
