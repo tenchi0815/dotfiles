@@ -1,4 +1,4 @@
-#!/bin/sh -eu
+#!/bin/bash -eu
 
 # Ours variables
 DIR="$(cd "$(dirname "$0")"; pwd)"
@@ -14,22 +14,39 @@ has() {
     command -v "$1" > /dev/null 2>&1
 }
 
+ask() {
+    set +e
+    while true; do
+        read -p "$1 ([y]/n) " -r
+        REPLY=${REPLY:-"n"}
+        if expr "$REPLY" : '^[Yy]$' >/dev/null; then
+            return 0
+        elif expr "$REPLY" : '^[Nn]$' >/dev/null; then
+            return 1
+        fi
+    done
+    set -x
+}
+
 symlink() {
     src=$1
     dst=$2
-    ls "$src" > /dev/null
-    [ -L "$dst" ] && { echo "Symlink $dst already exists. Overwriting..."; rm -fr "$dst"; }
-    [ -e "$dst" ] && { echo "$dst already exists. Are you sure to overwrite it?"; rm -Ir "$dst"; }
-    if [ -e "$dst" ]; then echo "Failed to create symlink to $dst"; else ln -sf "$src" "$dst"; fi
+    overwrite=0
+    if [[ -e "$dst" ]]; then
+        ask "$dst already exists. Are you sure to overwrite it?"
+        overwrite=$?
+    fi
+    if [[ "$overwrite" == 0 ]]; then
+        ln -sf "$src" "$dst"
+    fi
 }
 
 # zsh dotfiles
 echo "Making symbolic links to zsh files..."
-#symlink "${ZDIR}"/.zprofile "${ZDOTDIR:-~}"/.zprofile
-symlink "${ZDIR}"/.zshenv "${ZDOTDIR:-$HOME}"/.zshenv
-symlink "${ZDIR}"/.zshrc "${ZDOTDIR:-$HOME}"/.zshrc
-symlink "${ZDIR}"/.zshrc.local "${ZDOTDIR:-$HOME}"/.zshrc.local
-symlink "${ZDIR}"/.zsh_aliases "${ZDOTDIR:-$HOME}"/.zsh_aliases
+symlink "${ZDIR}"/zprofile "${ZDOTDIR:-$HOME}"/.zprofile
+symlink "${ZDIR}"/zshrc "${ZDOTDIR:-$HOME}"/.zshrc
+symlink "${ZDIR}"/zshrc.local "${ZDOTDIR:-$HOME}"/.zshrc.local
+symlink "${ZDIR}"/zsh_aliases "${ZDOTDIR:-$HOME}"/.zsh_aliases
 echo 'done.'
 echo
 
@@ -37,10 +54,9 @@ echo
 echo "Making symbolic links to vim config files..."
 if has nvim; then
     XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-"${HOME}/.config/"}
-    [ -d "${XDG_CONFIG_HOME}" ] || mkdir -p "${XDG_CONFIG_HOME}"
+    [[ -d "${XDG_CONFIG_HOME}" ]] || mkdir -p "${XDG_CONFIG_HOME}"
     symlink "${VIMDIR}/init.vim" "${XDG_CONFIG_HOME}/nvim/init.vim"
     symlink "${VIMDIR}/nvim.d" "${XDG_CONFIG_HOME}/nvim/nvim.d"
-    symlink "${VIMDIR}/env" "${XDG_CONFIG_HOME}/nvim/env"
 elif has vim > /dev/null; then
     symlink "${VIMDIR}/init.vim" "${HOME}/.vimrc"
     symlink "${VIMDIR}/nvim.d" "${HOME}/nvim.d"
@@ -53,6 +69,6 @@ echo
 
 # TMUX
 echo "Making symbolic links to tmux config files..."
-has tmux && symlink "${TMUXDIR}/.tmux.conf" "${HOME}/tmux.conf"
+has tmux && symlink "${TMUXDIR}/tmux.conf" "${HOME}/.tmux.conf"
 echo 'done.'
 echo

@@ -1,4 +1,4 @@
-# /etc/zsh/zprofile: system-wide .zprofile file for zsh(1).
+# ~/.zprofile
 #
 # This file is sourced only for login shells (i.e. shells
 # invoked with "-" as the first character of argv[0], and
@@ -6,17 +6,14 @@
 #
 # Global Order: zshenv, zprofile, zshrc, zlogin
 #
-if [ "$SHLVL" = "1" ] && [ ! -z "$PS1" ] ; then
+if [ "$SHLVL" = "1" ] && [ -n "$PS1" ] ; then
     [ -d ~/log/ ] || mkdir ~/log
     find ~/log/ -type f -mtime +60 -delete
-    script -fq >(awk '{print strftime("%FT%T%z ") $0}{fflush() }'>> $HOME/log/"$(date +%Y%m%d_%H%M%S)_wsl.log")
+    script -fq >(awk '{print strftime("%FT%T%z ") $0}{fflush() }'>> "$HOME/log/$(uname -n)_$(date '+%Y%m%d_%H%M%S').log")
 fi
 
-# Automatic dynamic port-forward to hopgate
-process_name="/usr/local/bin/hopgate-portforward"
-if [ -f $process_name ] && [ ! -z `pgrep -P 1 -f "$process_name"` ]; then
-	/usr/local/bin/hopgate-portforward > /dev/null
-fi
+# ssh-agent auto startup
+eval "$(ssh-agent -s)" > /dev/null 2>&1
 
 # set PATH so it includes user's private bin if it exists
 if [ -d "$HOME/bin" ] ; then

@@ -197,7 +197,7 @@ function prompt {
 }
 
 function git-prompt {
-    echo "${fg_base}%~${fg_yellow}"'$(__git_ps1)%f '
+    echo "${fg_yellow}"'$(__git_ps1)%f '
 }
 
 fg_base="%F{#93a1a1}"
@@ -215,7 +215,7 @@ fg_green="%F{#859900}"
 
 #PROMPT='%m%# '    # default prompt
 PROMPT=`prompt`
-#RPROMPT=' %~'     # prompt for right side of screen
+RPROMPT=' ${fg_base}%~'     # prompt for right side of screen
 command -v __git_ps1 > /dev/null 2>&1 && RPROMPT=$RPROMPT"`git-prompt`"
 
 # Some environment variables
@@ -247,7 +247,6 @@ export NVM_DIR="$HOME/.nvm"
 export NVM_DIR="$([[ -z "${XDG_CONFIG_HOME-}" ]] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 [[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 
-export NEXTWORD_DATA_PATH="/usr/share/nextword-data-small/"
 export TZ='Asia/Tokyo'
 
 export PATH
@@ -332,9 +331,6 @@ zstyle ':completion:*:*:(^rm):*:*files' ignored-patterns '*?.o' '*?.c~' \
 
 # ignore completion functions (until the _ignored completer)
 zstyle ':completion:*:functions' ignored-patterns '_*'
-
-# kubectl completion
-has kubectl && source <(kubectl completion zsh)
 
 # Auto add hop-git ssh-key
 # -------------------------------------------------------------------------------------------------------
