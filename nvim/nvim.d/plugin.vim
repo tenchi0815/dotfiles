@@ -18,15 +18,27 @@ if ! empty(globpath(&rtp, 'autoload/plug.vim'))
     " Make sure you use single quotes
 
     " Shorthand notation; fetches https://github.com/junegunn/vim-easy-align
-    " 
+    "
     " Any valid git URL is allowed
     " Plug 'https://github.com/junegunn/vim-github-dashboard.git'
 
     " Multiple Plug commands can be written in a single line using | separators
     " Plug 'SirVer/ultisnips' | Plug 'honza/vim-snippets'
 
+    " Assign <space>to <Leader>
+    let mapleader = "\<space>"
+
     " On-demand loading
-    " Plug 'preservim/nerdtree', { 'on': 'NERDTreeToggle' }
+    "" nerdtree
+    Plug 'preservim/nerdtree', { 'on': 'NERDTreeToggle' }
+    nnoremap <Leader>n :NERDTreeFocus<CR>
+    nnoremap <Leader><C-n> :NERDTree<CR>
+    nnoremap <Leader><C-t> :NERDTreeToggle<CR>
+    nnoremap <Leader><C-f> :NERDTreeFind<CR>
+    "
+    " Exit Vim if NERDTree is the only window remaining in the only tab.
+    autocmd BufEnter * if tabpagenr('$') == 1 && winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | call feedkeys(":quit\<CR>:\<BS>") | endif
+
     " Plug 'tpope/vim-fireplace', { 'for': 'clojure' }
 
     " Using a non-default branch
@@ -50,9 +62,6 @@ if ! empty(globpath(&rtp, 'autoload/plug.vim'))
     " You can revert the settings after the call like so:
     "   filetype indent off   " Disable file-type-specific indentation
     "   syntax off            " Disable syntax highlighting
-
-    " Assign <space>to <Leader>
-    let mapleader = "\<space>"
 
     " vim-easymotion
     " <Leader>f{char} to move to {char}
@@ -245,7 +254,6 @@ if ! empty(globpath(&rtp, 'autoload/plug.vim'))
     "
     "Plug 'neovim/nvim-lspconfig'
     "
-    Plug 'preservim/nerdtree'
 
     call plug#end()
 
