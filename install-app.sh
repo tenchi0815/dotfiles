@@ -4,7 +4,7 @@
     # install-app.sh
     # Install applications and be ready
     #
-    
+
 CMDNAME="$(basename "$0")"
 DIRNAME="$(cd "$(dirname "$0")"; pwd)"
 SHELLS="bash zsh"
@@ -453,6 +453,8 @@ if ask "Do you want to install kubectl?"; then
 else
     msg_skip
 fi
+
+# TODO: logcli のインストールスクリプトを書く
 echo '................................................................'
 echo
 echo 'Finished!'
