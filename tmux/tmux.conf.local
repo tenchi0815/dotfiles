@@ -1,58 +1,65 @@
-# Color variables ❯❯❯
+# ~/.tmux.conf.local: per-machine color configuration
+#
+# Sourced from tmux.conf. Colors live here so each environment can be
+# tuned after cloning the dotfiles repo. Everything is defined as tmux
+# user options (@name) and referenced from tmux.conf via #{E:@name}.
+#
+# Two layers:
+#   1. Palette       - raw color codes (@base01, @yellow, ...)
+#   2. Semantic names - what each UI element uses (@fg_status, ...)
+# Only the entries actually referenced are left active; unused ones are
+# commented out for reference.
+
+# Color palette ❯❯❯
 # ----------------------------------------------------------------------------------
-bg_time=$MAGENTA
-fg_cwin=$MAGENTA
-fg_border=$YELLOW
-fg_border_active=$BASE01
-#bg_status=$TEMPUS_DK_BK
-bg_status=$BASE03
-#fg_status=$TEMPUS_LT_WH
-fg_status=$BASE00
-bg_status_left=$bg_status
 
-# Status line ❯❯❯
+# Solarized dark
+#set -g @base00  "#657b83"
+set -g @base01  "#586e75"   # colour240
+#set -g @base02  "#073642"
+#set -g @base03  "#002b36"   # colour234
+#set -g @base1   "#93a1a1"
+#set -g @base2   "#eee8d5"   # colour254
+#set -g @base3   "#fdf6e3"
+set -g @yellow  "#b58900"   # colour136
+#set -g @orange  "#cb4b16"
+#set -g @red     "#dc322f"
+#set -g @magenta "#d33682"
+#set -g @violet  "#6c71c4"   # colour61
+#set -g @blue    "#268bd2"
+#set -g @cyan    "#2aa198"
+#set -g @green   "#859900"
+
+# vim-hybrid
+#set -g @nvim_background "#1d1f21"
+#set -g @nvim_comment    "#707880"
+#set -g @nvim_constant   "#cc6666"
+#set -g @nvim_type       "#de935f"
+
+# tempus-dusk
+#set -g @tempus_dk_bk "#1f252d"
+#set -g @tempus_dk_pk "#b190af"
+#set -g @tempus_lt_pk "#c69ac6"
+#set -g @tempus_dk_wh "#a29899"
+#set -g @tempus_lt_wh "#a2a8ba"
+
+# Henry misc original
+set -g @gray_light  "#d8dee9"
+#set -g @gray_medium "#abb2bf"
+set -g @gray_dark   "#3b4252"
+set -g @green_soft  "#a3be8c"
+set -g @blue_muted  "#81a1c1"
+set -g @cyan_soft   "#88c0d0"
+
+# Semantic color mapping ❯❯❯
 # ----------------------------------------------------------------------------------
-set -g status-style "bg=$bg_status,fg=$fg_status"
-
-set -g status-interval 15
-#weather='#(curl wttr.in/Tokyo\?format\="%%l:%%20%%t&period=60")' ### !!! would destroy status bar using with %c(emoji) !!!
-
-set -g status-right "" # Reset style
-
-set -ag status-right "#[fg=$fg_status]$TMUX_POWERLINE_SEPARATOR_LEFT_BOLD#[reverse] " # Reversed style
-#set -g status-right "$NF_MD_IP_NETWORK #(hostname -I | awk '{print $1}') " # Show Local IP address
-set -ag status-right '#U@#H '
-#set -ag status-right "$TMUX_POWERLINE_SEPARATOR_LEFT_THIN ${weather} " # Show weather forecast
-set -ag status-right "$TMUX_POWERLINE_SEPARATOR_LEFT_THIN %F %R"
-set -g status-right-length 120
-
-# ❯❯ Current window window-status format
-set-window-option -g window-status-style "bg=default"
-set-window-option -g window-status-separator " "
-set-window-option -g window-status-format " #I:#W"
-set-window-option -g window-status-current-format "#[fg=$fg_cwin] #I:#W#{?window_flags,#{window_flags}, }#[default]"
-
-set -g status-left "#[bg=$bg_status_left]#{?client_prefix,#[reverse],}[#S]"
-#set-option -g status-left "#[fg=$BASE01,bg=$BASE03]$TMUX_POWERLINE_SEPARATOR_RIGHT_BOLD "
-
-# Pane border ❯❯❯
-# ----------------------------------------------------------------------------------
-set -g pane-active-border-style "fg=$fg_border_active"
-
-# ❯❯ show git status
-#set -ag status-left "#[bg=$BASE03]#(~/tmux-git-prompt/tmux-git-prompt #{pane_current_path})"
-
-set -g status-left-length 100
-set -g pane-border-status off
-set -g pane-border-format "#[fg=$fg_border]#(~/tmux-git-prompt/tmux-git-prompt #{pane_current_path}) #[fg=$fg_status]#(echo #{pane_current_path} | sed 's#$HOME#~#g') "
-#set -g pane-border-format '#[fg=yellow]#(git -C #{pane_current_path} rev-parse --abbrev-ref HEAD)'
-
-# ❯❯ If running inside tmux ($TMUX is set), then change the status line to red
-%if #{TMUX}
-set -g status-bg red
-%endif
-
-# Clipboard ❯❯❯
-# ----------------------------------------------------------------------------------
-set -g set-clipboard on
-
+set -g @fg_status        "#{@gray_light}"
+set -g @bg_status        "#{@gray_dark}"
+set -g @fg_left          "#{@green_soft}"
+set -g @fg_cwin          "#{@cyan_soft}"
+set -g @fg_border        "#{@yellow}"
+set -g @fg_border_active "#{@base01}"
+set -g @fg_modestyle     "#{@gray_dark}"
+set -g @bg_modestyle     "#{@blue_muted}"
+#set -g @bg_time          "#{@magenta}"
+#set -g @bg_status_left   "#{@bg_status}"
