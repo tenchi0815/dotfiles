@@ -3,9 +3,10 @@
 # Ours variables
 DIR="$(cd "$(dirname "$0")"; pwd)"
 ZDIR="${DIR}/zsh"
-VIMDIR="${DIR}/nvim"
+VIMDIR="${DIR}/vim"
+NVIMDIR="${DIR}/nvim"
 TMUXDIR="${DIR}/tmux"
-readonly DIR ZDIR VIMDIR TMUXDIR
+readonly DIR ZDIR VIMDIR NVIMDIR TMUXDIR
 
 # Theirs variables
 export XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-${HOME}/.config}"
@@ -54,14 +55,14 @@ main() {
   if has nvim; then
       XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-"${HOME}/.config/"}
       [[ -d "${XDG_CONFIG_HOME}" ]] || mkdir -p "${XDG_CONFIG_HOME}"
-      symlink "${VIMDIR}/init.vim" "${XDG_CONFIG_HOME}/nvim/init.vim"
-      symlink "${VIMDIR}/nvim.d" "${XDG_CONFIG_HOME}/nvim/nvim.d"
-  elif has vim > /dev/null; then
+      symlink "${NVIMDIR}/init.lua" "${XDG_CONFIG_HOME}/nvim/init.lua"
+      symlink "${NVIMDIR}/lua" "${XDG_CONFIG_HOME}/nvim/lua"
+      symlink "${NVIMDIR}/lsp" "${XDG_CONFIG_HOME}/nvim/lsp"
+      symlink "${NVIMDIR}/nextword-data-small" "${XDG_CONFIG_HOME}/nvim/nextword-data-small"
+  fi
+  if has vim > /dev/null; then
       symlink "${VIMDIR}/init.vim" "${HOME}/.vimrc"
       symlink "${VIMDIR}/nvim.d" "${HOME}/nvim.d"
-  else
-      echo "Neither nvim nor vim is installed."
-      echo "Skipped."
   fi
   echo 'done.'
   echo
