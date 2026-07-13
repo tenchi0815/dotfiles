@@ -62,7 +62,7 @@ main() {
   fi
   if has vim > /dev/null; then
       symlink "${VIMDIR}/init.vim" "${HOME}/.vimrc"
-      symlink "${VIMDIR}/nvim.d" "${HOME}/nvim.d"
+      symlink "${VIMDIR}/vim.d" "${HOME}/vim.d"
   fi
   echo 'done.'
   echo
