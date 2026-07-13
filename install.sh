@@ -43,9 +43,7 @@ symlink() {
 
 # zsh dotfiles
 echo "Making symbolic links to zsh files..."
-symlink "${ZDIR}"/zprofile "${ZDOTDIR:-$HOME}"/.zprofile
 symlink "${ZDIR}"/zshrc "${ZDOTDIR:-$HOME}"/.zshrc
-symlink "${ZDIR}"/zshrc.local "${ZDOTDIR:-$HOME}"/.zshrc.local
 symlink "${ZDIR}"/zsh_aliases "${ZDOTDIR:-$HOME}"/.zsh_aliases
 echo 'done.'
 echo
