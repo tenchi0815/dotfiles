@@ -9,7 +9,7 @@ CMDNAME="$(basename "$0")"
 DIRNAME="$(cd "$(dirname "$0")"; pwd)"
 SHELLS="bash zsh"
 readonly CMDNAME DIRNAME SHELLS
-essentials=(git curl less jq make unzip)
+essentials=(git curl less jq make unzip tree)
 DRYRUN=
 prefix=
 update_config=2
@@ -314,6 +314,14 @@ if ask "Do you want to install or update Neovim?"; then
     if ask "Do you want to update your shell configuration files?"; then
         update_config=1
         prefix="${XDG_CONFIG_HOME}/nvim/.nvim"
+        nextword_data_path="${XDG_CONFIG_HOME}/nvim/nextword-data-small"
+        if [ -d "$nextword_data_path" ]; then
+            nextword_export_line="export NEXTWORD_DATA_PATH=\"${nextword_data_path}\""
+        else
+            echo "nextword-data-small not found at ${nextword_data_path}."
+            echo "See the Install section in the README: https://github.com/high-moctane/nextword-data"
+            nextword_export_line="# NEXTWORD_DATA_PATH not set: nextword-data-small not found at ${nextword_data_path}"
+        fi
         for shell in $SHELLS; do
             src=${prefix}.${shell}
             if [ ! -f "$src" ]; then
@@ -323,11 +331,9 @@ if ask "Do you want to install or update Neovim?"; then
 # Setup Neovim
 # -------------------------------------------------------------------------------------------------------
 PATH="/opt/$nvim_base/bin\${PATH:+:\${PATH}}"
-alias vi='nvim'
-alias vim='nvim'
-alias view='nvim -R'
+alias nview='nvim -R'
 
-export NEXTWORD_DATA_PATH="/usr/share/nextword-data-small"
+$nextword_export_line
 EOF
 
                 echo "OK"
