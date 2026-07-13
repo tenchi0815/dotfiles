@@ -250,8 +250,6 @@ export NVM_DIR="$([[ -z "${XDG_CONFIG_HOME-}" ]] && printf %s "${HOME}/.nvm" || 
 
 export TZ='Asia/Tokyo'
 
-export SUDO_EDITOR='/opt/nvim-linux-x86_64/bin/nvim'
-
 export PATH
 
 # don't put duplicate lines or lines starting with space in the history.
