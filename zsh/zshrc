@@ -67,11 +67,12 @@ abbreviations=(
     "H"         "| head"
     "Hl"        "--help |& less -r"
     "j"         "jobs"
+    "k"         "kubectl"
     "ll"        "ls -alF"
     "la"        "ls -A"
     "rmi"       "rm -i"
     "rmI"       "rm -I"
-    "L"         "| less"
+    "L"         "|& less"
     "pu"        "pushd"
     "po"        "popd"
     "S"         "| sort -u"
@@ -85,8 +86,10 @@ abbreviations=(
     "ga"        "git add"
     "gc"        "git commit"
     "gl"        "git log"
+    "glo"       "git log --oneline"
     "gln"       "git log --name-only"
     "gd"        "git diff"
+    "gdc"       "git diff --cached"
     "gpu"       "git push"
     "gpl"       "git pull"
     "gsw"       "git switch"
@@ -118,7 +121,6 @@ bindkey "^x " no-magic-abbrev-expand
 if [[ -x /usr/bin/dircolors ]]; then
     test -r ~/.dircolors && eval "$(dircolors -b ~/.dircolors)" || eval "$(dircolors -b)"
     alias ls='ls --color=auto'
-    alias diff='diff --color=always'
     #alias dir='dir --color=auto'
     #alias vdir='vdir --color=auto'
 
@@ -174,8 +176,8 @@ else
     source "${git_prompt_script}"
 fi
 
-GIT_PS1_SHOWDIRTYSTATE=true
-GIT_PS1_SHOWUNTRACKEDFILES=true
+GIT_PS1_SHOWDIRTYSTATE=
+GIT_PS1_SHOWUNTRACKEDFILES=
 GIT_PS1_SHOWSTASHSTATE=true
 GIT_PS1_SHOWUPSTREAM=auto
 GIT_PROMPT_ONLY_IN_REPO=1
@@ -192,7 +194,10 @@ function prompt {
     fi
 
     #prompt="${usr_host}${fg_cyan}%10<...<%~%<< ${fg_base}%# "
-    prompt="${usr_host}${fg_cyan}%(5~|%-1~/…/%3~|%${maxlength}>..>%~%>>) ${fg_base}%# "
+    #prompt="${usr_host}${fg_cyan}%(5~|%-1~/…/%3~|%${maxlength}>..>%~%>>) ${fg_base}%# "
+    #prompt="${usr_host}${fg_cyan}%(5~|…/%3~|%${maxlength}<…<%~) ${fg_base}%# "
+    prompt="${usr_host}${fg_base}%# "
+    #prompt="${usr_host}${fg_cyan}%(3~|%-1~/…/%3~|%4~) ${fg_base}%# "
     echo "${prompt}%f"
 }
 
@@ -300,7 +305,7 @@ zstyle ':completion:*::::' completer _expand _complete _ignored _approximate
 # allow one error for every three characters typed in approximate completer
 zstyle -e ':completion:*:approximate:*' max-errors \
     'reply=( $(( ($#PREFIX+$#SUFFIX)/3 )) numeric )'
-    
+
 # insert all expansions for expand completer
 zstyle ':completion:*:expand:*' tag-order all-expansions
 
@@ -331,37 +336,6 @@ zstyle ':completion:*:*:(^rm):*:*files' ignored-patterns '*?.o' '*?.c~' \
 
 # ignore completion functions (until the _ignored completer)
 zstyle ':completion:*:functions' ignored-patterns '_*'
-
-# Auto add hop-git ssh-key
-# -------------------------------------------------------------------------------------------------------
-if [[ -f /usr/local/bin/ssh-addkey-svc-git.sh ]]; then
-	. /usr/local/bin/ssh-addkey-svc-git.sh > /dev/null 2>&1
-fi
-
-# tmux
-# -------------------------------------------------------------------------------------------------------
-if [[ -n $TMUX ]]; then
-    ## Tmux + SSH --------------------------------------------------------
-    function ssh_tmux() {
-        ssh_host=$(echo $@ | perl -ple 's/(^|\s)-[^\s] *[^\s]+//g' | cut -d" " -f2 )
-        tmux    new-window -n $(echo $@ | perl -ple 's/(^|\s)-[^\s] *[^\s]+//g' | cut -d" " -f2 ) "exec ssh $(echo $@)" \; \
-                run-shell "[[ ! -d $HOME/.tmux/log/${ssh_host} ]] && mkdir -p $HOME/.tmux/log/${ssh_host}" \; \
-                pipe-pane "cat >> $HOME/.tmux/log/${ssh_host}/$(date +%Y%m%d_%H%M%S.log)" \; \
-                display-message "Started logging to $HOME/.tmux/log/${ssh_host}/$(date +%Y%m%d_%H%M%S.log)"
-        #tmux    run-shell "[[ ! -d $HOME/.tmux/log/${ssh_host} ]] && mkdir -p $HOME/.tmux/log/${ssh_host}" \; \
-        #        pipe-pane "cat >> $HOME/.tmux/log/${ssh_host}/$(date +%Y%m%d_%H%M%S.log)" \; \
-        #        split-window "exec ssh $(echo $@)" \; \
-        #        display-message "Started logging to $HOME/.tmux/log/${ssh_host}/$(date +%Y%m%d_%H%M%S.log)" \
-        #        2> /dev/null 
-        #ssh "$(echo $@)"
-        #tmux pipe-pane \; display-message "Logging end."
-    }
-    compdef ssh_tmux='ssh'
-
-    #if [[ $TERM = screen ]] || [[ $TERM = screen-256color ]] ; then
-    #  alias ssh=ssh_tmux
-    #fi
-fi
 
 # Local environment dependent settings
 # -------------------------------------------------------------------------------------------------------

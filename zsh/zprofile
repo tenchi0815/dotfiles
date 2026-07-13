@@ -24,3 +24,8 @@ fi
 if [ -d "$HOME/.local/bin" ] ; then
     PATH="$HOME/.local/bin:$PATH"
 fi
+
+# Auto port-forwarding to hopgate
+if [ -f /usr/local/bin/hopgate-portforward ] && [[ -z `pidof ssh` ]]; then
+	/usr/local/bin/hopgate-portforward > /dev/null
+fi

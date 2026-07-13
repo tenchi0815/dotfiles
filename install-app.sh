@@ -247,47 +247,70 @@ echo '................................................................'
 echo
 
 # Neovim
-if ask "Do you want to install Neovim?"; then
-    binary_available=1
-    binary_error=""
-    [[ "$uname_s" == "windows" ]] && binary_available=0
+version_lt() {
+    [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -n 1)" = "$1" ]
+}
+
+nvim_installed_version() {
+    has nvim || return 1
+    nvim --version 2>/dev/null | awk 'NR==1 { sub(/^v/, "", $2); print $2 }'
+}
+
+nvim_stable_version() {
+    curl -fsSLI -o /dev/null -w '%{url_effective}' https://github.com/neovim/neovim/releases/tag/stable 2>/dev/null \
+        | sed -E 's#.*/v([^/?]+).*#\1#'
+}
+
+nvim_arch_from_uname() {
     case "$uname_m" in
-        arm64)      archi="arm64"  ;;
-        x86_64)     archi="x86_64"  ;;
-        armv8*)     archi="arm64"   ;;
-        aarch64*)   archi="arm64"  ;;
-        *64)        archi="x86_64"   ;;
-        *)          binary_error=1   ;;
+        arm64|armv8*|aarch64*) echo "arm64" ;;
+        x86_64|*64)            echo "x86_64" ;;
+        *)                     return 1 ;;
     esac
-    nvim_base="nvim-${os}-${archi}"
-    if has nvim; then
-        msg_already "Neovim"
+}
+
+if ask "Do you want to install or update Neovim?"; then
+    stable_version="$(nvim_stable_version)"
+    current_version="$(nvim_installed_version || true)"
+    archi="$(nvim_arch_from_uname || true)"
+    binary_available=1
+    [[ "$os" == "windows" ]] && binary_available=0
+
+    if [ -z "$stable_version" ]; then
+        echo "Could not determine stable Neovim version. Skipping."
+        msg_skip
+    elif [ -z "$archi" ]; then
+        if [ "$binary_available" -eq 0 ]; then
+            echo "Prebuilt binary for $uname_s is available. Install manually from https://github.com/neovim/neovim/releases"
+        else
+            echo "No prebuilt binary for $uname_s/$uname_m."
+        fi
         msg_skip
     else
-        msg_inprogress "Neovim"
-        if [ -n "$binary_error" ]; then
-            if [ "$binary_available" -eq 0 ]; then
-                echo "Prebuilt binary for $uname_s is available. Install manually from https://github.com/neovim/neovim/releases"
-            else
-                echo "No prebuilt binary for $uname_s ..."
-                echo "Neovim may not suport $uname_s platform."
-            fi
+        nvim_base="nvim-${os}-${archi}"
+        need_install=0
+        if [ -z "$current_version" ]; then
+            need_install=1
+            echo "Neovim is not installed. Installing stable v${stable_version}."
+        elif version_lt "$current_version" "$stable_version"; then
+            need_install=1
+            echo "Updating Neovim from v${current_version} to stable v${stable_version}."
         else
-            echo "Downloading nvim ..."
-            if [ -x /opt/"$nvim_base"/bin/nvim ]; then
-                echo "  - Already exists"
-                msg_skip
-            else
-                run curl -LO "https://github.com/neovim/neovim/releases/download/v0.10.4/${nvim_base}.tar.gz"
-                run sudo rm -rf /opt/nvim
-                run sudo tar -C /opt -xzf nvim-"${os}"-"${archi}".tar.gz
-                [ -d "${XDG_CONFIG_HOME}/nvim" ] || mkdir -p "${XDG_CONFIG_HOME}/nvim"
-                msg_done "Neovim"
-            fi
-            #echo 'export PATH="$PATH:/opt/nvim-linux64/bin"' >> ~/.bashrc
-            echo
+            echo "Neovim is up to date (installed: v${current_version}, stable: v${stable_version})."
+            msg_skip
+        fi
+
+        if [ "$need_install" -eq 1 ]; then
+            msg_inprogress "Neovim"
+            run curl -fLO "https://github.com/neovim/neovim/releases/download/stable/${nvim_base}.tar.gz"
+            run sudo rm -rf "/opt/${nvim_base}"
+            run sudo tar -C /opt -xzf "${nvim_base}.tar.gz"
+            run rm -f "${nvim_base}.tar.gz"
+            [ -d "${XDG_CONFIG_HOME}/nvim" ] || mkdir -p "${XDG_CONFIG_HOME}/nvim"
+            msg_done "Neovim"
         fi
     fi
+
     if ask "Do you want to update your shell configuration files?"; then
         update_config=1
         prefix="${XDG_CONFIG_HOME}/nvim/.nvim"
@@ -299,7 +322,7 @@ if ask "Do you want to install Neovim?"; then
                 run cat > "$src" << EOF
 # Setup Neovim
 # -------------------------------------------------------------------------------------------------------
-PATH="\${PATH:+\${PATH}:}/opt/$nvim_base/bin"
+PATH="/opt/$nvim_base/bin\${PATH:+:\${PATH}}"
 alias vi='nvim'
 alias vim='nvim'
 alias view='nvim -R'

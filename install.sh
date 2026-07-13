@@ -41,35 +41,39 @@ symlink() {
     fi
 }
 
-# zsh dotfiles
-echo "Making symbolic links to zsh files..."
-symlink "${ZDIR}"/zprofile "${ZDOTDIR:-$HOME}"/.zprofile
-symlink "${ZDIR}"/zshrc "${ZDOTDIR:-$HOME}"/.zshrc
-symlink "${ZDIR}"/zshrc.local "${ZDOTDIR:-$HOME}"/.zshrc.local
-symlink "${ZDIR}"/zsh_aliases "${ZDOTDIR:-$HOME}"/.zsh_aliases
-echo 'done.'
-echo
+main() {
+  # zsh dotfiles
+  echo "Making symbolic links to zsh files..."
+  symlink "${ZDIR}"/zshrc "${ZDOTDIR:-$HOME}"/.zshrc
+  symlink "${ZDIR}"/zsh_aliases "${ZDOTDIR:-$HOME}"/.zsh_aliases
+  echo 'done.'
+  echo
 
-# NeoVim
-echo "Making symbolic links to vim config files..."
-if has nvim; then
-    XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-"${HOME}/.config/"}
-    [[ -d "${XDG_CONFIG_HOME}" ]] || mkdir -p "${XDG_CONFIG_HOME}"
-    symlink "${VIMDIR}/init.vim" "${XDG_CONFIG_HOME}/nvim/init.vim"
-    symlink "${VIMDIR}/nvim.d" "${XDG_CONFIG_HOME}/nvim/nvim.d"
-elif has vim > /dev/null; then
-    symlink "${VIMDIR}/init.vim" "${HOME}/.vimrc"
-    symlink "${VIMDIR}/nvim.d" "${HOME}/nvim.d"
-else
-    echo "Neither nvim nor vim is installed."
-    echo "Skipped."
+  # NeoVim
+  echo "Making symbolic links to vim config files..."
+  if has nvim; then
+      XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-"${HOME}/.config/"}
+      [[ -d "${XDG_CONFIG_HOME}" ]] || mkdir -p "${XDG_CONFIG_HOME}"
+      symlink "${VIMDIR}/init.vim" "${XDG_CONFIG_HOME}/nvim/init.vim"
+      symlink "${VIMDIR}/nvim.d" "${XDG_CONFIG_HOME}/nvim/nvim.d"
+  elif has vim > /dev/null; then
+      symlink "${VIMDIR}/init.vim" "${HOME}/.vimrc"
+      symlink "${VIMDIR}/nvim.d" "${HOME}/nvim.d"
+  else
+      echo "Neither nvim nor vim is installed."
+      echo "Skipped."
+  fi
+  echo 'done.'
+  echo
+
+  # TMUX
+  echo "Making symbolic links to tmux config files..."
+  has tmux && symlink "${TMUXDIR}/tmux.conf" "${HOME}/.tmux.conf"
+  has tmux && symlink "${TMUXDIR}/tmux.conf.local" "${HOME}/.tmux.conf.local"
+  echo 'done.'
+  echo
+}
+
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  main "$@"
 fi
-echo 'done.'
-echo
-
-# TMUX
-echo "Making symbolic links to tmux config files..."
-has tmux && symlink "${TMUXDIR}/tmux.conf" "${HOME}/.tmux.conf"
-has tmux && symlink "${TMUXDIR}/tmux.conf.local" "${HOME}/.tmux.conf.local"
-echo 'done.'
-echo
