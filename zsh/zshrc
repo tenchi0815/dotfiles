@@ -8,6 +8,12 @@
 # THIS FILE IS NOT INTENDED TO BE USED AS /etc/zshrc, NOR WITHOUT EDITING
 #return 0	# Remove this line after editing this file as appropriate
 
+# precmd
+# -------------------------------------------------------------------------------------------------------
+precmd() {
+    print -Pn "\e]0;%n@%m: %~\a"
+}
+
 # Local functions
 # -------------------------------------------------------------------------------------------------------
 has() {
@@ -243,8 +249,6 @@ export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 
 # Use ~~ as the trigger sequence instead of the default **
 #export FZF_COMPLETION_TRIGGER='~~'
-
-export NVM_DIR="$HOME/.nvm"
 
 export NVM_DIR="$([[ -z "${XDG_CONFIG_HOME-}" ]] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 [[ -s "$NVM_DIR/nvm.sh" ]] && \. "$NVM_DIR/nvm.sh" # This loads nvm

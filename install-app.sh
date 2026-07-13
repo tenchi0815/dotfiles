@@ -476,6 +476,8 @@ if ask "Do you want to install kubectl?"; then
 else
     msg_skip
 fi
+
+# TODO: logcli のインストールスクリプトを書く
 echo '................................................................'
 echo
 echo 'Finished!'
