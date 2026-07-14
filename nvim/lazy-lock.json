@@ -1,0 +1,23 @@
+{
+  "CopilotChat.nvim": { "branch": "main", "commit": "f0c2a23ab79dc295f5e0eef0d8b587a39020c852" },
+  "copilot.vim": { "branch": "release", "commit": "a12fd5672110c8aa7e3c8419e28c96943ca179be" },
+  "ddc-filter-matcher_head": { "branch": "main", "commit": "7a52b2facb97a352fcd900baca1b4efa7b652176" },
+  "ddc-filter-sorter_rank": { "branch": "main", "commit": "0d58fe698528dfeaf895eb70791c1b5e8a1d2288" },
+  "ddc-source-around": { "branch": "main", "commit": "277b926fdb3b642572cc756d52a42f18ac7c6059" },
+  "ddc-source-lsp": { "branch": "main", "commit": "7718b6d9539ebddc18e961f90ff1aca7975ffe5c" },
+  "ddc-source-nextword": { "branch": "main", "commit": "e0855682dd5cbb12cd84bc57088dad9ad3d2ed93" },
+  "ddc-ui-native": { "branch": "main", "commit": "7b946489962453c485b894c18dd8e81057dd8098" },
+  "ddc.vim": { "branch": "main", "commit": "07d2c9995cbcb456ee441b74e098a79016303a20" },
+  "denops-helloworld.vim": { "branch": "main", "commit": "f975281571191cfd4e3f9e5ba77103932f7dd6e5" },
+  "denops-popup-preview.vim": { "branch": "main", "commit": "e2c967a02f18e5f3a00b3ea216d6f7d3dcaf9d82" },
+  "denops-signature_help": { "branch": "main", "commit": "f56884f3eed5af6c13cc414a092ce05ca9ad2612" },
+  "denops.vim": { "branch": "main", "commit": "e82c5a94ca1154b05c9d74d6f6f58c9991b1424f" },
+  "fzf": { "branch": "master", "commit": "24832e97ef9640e5f859ede8dc163cf3c27145cb" },
+  "fzf.vim": { "branch": "master", "commit": "d2a59a992a2455f609c0fde2ebd84427ea8f919a" },
+  "hicolcode.vim": { "branch": "main", "commit": "09573579c439c2685e50f471b0866bfe2d656dbb" },
+  "lazy.nvim": { "branch": "main", "commit": "85c7ff3711b730b4030d03144f6db6375044ae82" },
+  "markdown-preview.nvim": { "branch": "master", "commit": "a923f5fc5ba36a3b17e289dc35dc17f66d0548ee" },
+  "plenary.nvim": { "branch": "master", "commit": "74b06c6c75e4eeb3108ec01852001636d85a932b" },
+  "vim-easymotion": { "branch": "master", "commit": "b3cfab2a6302b3b39f53d9fd2cd997e1127d7878" },
+  "vim-hybrid": { "branch": "master", "commit": "cc58baabeabc7b83768e25b852bf89c34756bf90" }
+}
