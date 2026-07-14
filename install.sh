@@ -16,7 +16,6 @@ has() {
 }
 
 ask() {
-    set +e
     while true; do
         read -p "$1 ([y]/n) " -r
         REPLY=${REPLY:-"n"}
@@ -26,20 +25,26 @@ ask() {
             return 1
         fi
     done
-    set -x
 }
 
 symlink() {
     src=$1
     dst=$2
-    overwrite=0
-    if [[ -e "$dst" ]]; then
-        ask "$dst already exists. Are you sure to overwrite it?"
-        overwrite=$?
+    if [[ -L "$dst" ]]; then
+        if [[ "$(readlink "$dst")" == "$src" ]]; then
+            echo "$dst is already linked. Skipping ..."
+            return 0
+        fi
+        ask "$dst already exists. Are you sure to overwrite it?" || return 0
+        unlink "$dst"
+    elif [[ -d "$dst" ]]; then
+        echo "$dst is a real directory, not a symlink. Remove it manually and rerun. Skipping ..."
+        return 0
+    elif [[ -e "$dst" ]]; then
+        ask "$dst already exists. Are you sure to overwrite it?" || return 0
+        rm -f "$dst"
     fi
-    if [[ "$overwrite" == 0 ]]; then
-        ln -sf "$src" "$dst"
-    fi
+    ln -s "$src" "$dst"
 }
 
 main() {
@@ -53,12 +58,8 @@ main() {
   # NeoVim
   echo "Making symbolic links to vim config files..."
   if has nvim; then
-      XDG_CONFIG_HOME=${XDG_CONFIG_HOME:-"${HOME}/.config/"}
       [[ -d "${XDG_CONFIG_HOME}" ]] || mkdir -p "${XDG_CONFIG_HOME}"
-      symlink "${NVIMDIR}/init.lua" "${XDG_CONFIG_HOME}/nvim/init.lua"
-      symlink "${NVIMDIR}/lua" "${XDG_CONFIG_HOME}/nvim/lua"
-      symlink "${NVIMDIR}/lsp" "${XDG_CONFIG_HOME}/nvim/lsp"
-      symlink "${NVIMDIR}/nextword-data-small" "${XDG_CONFIG_HOME}/nvim/nextword-data-small"
+      symlink "${NVIMDIR}" "${XDG_CONFIG_HOME}/nvim"
   fi
   if has vim > /dev/null; then
       symlink "${VIMDIR}/init.vim" "${HOME}/.vimrc"
